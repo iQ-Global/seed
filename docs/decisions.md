@@ -219,20 +219,14 @@ Long-term goals:
 
 ---
 
-## Open Questions & Considerations
+## Features for Future Versions
 
-### Nice to Have (Later Priority)
+### Not in v1.0 (Maybe Later)
 1. **Pagination**: Useful but not critical for v1.0
-2. **Flash Messages**: Session-based messages - might include in core
-3. **Form Helpers**: csrf_field(), old(), error() - already decided to include
-4. **Localization**: Multi-language support - future consideration
-5. **Cookie Management**: Beyond PHP natives - evaluate need
-
-### To Investigate
-1. **Event System**: Core or module? Leaning toward core for extensibility
-2. **HTTP Client**: Core or module? API Client could wrap it - leaning toward core
-3. **Validation**: Core or module? Leaning toward core due to importance
-4. **WebSockets**: Module or future? Interesting but complex
+2. **Localization (i18n)**: Multi-language support - future consideration
+3. **Cookie Helpers**: Beyond PHP natives - evaluate need based on usage
+4. **Named Routes**: URL generation by route name - CI3 doesn't have, not essential
+5. **WebSockets**: Real-time communication - interesting but complex, likely v2.0+
 
 ### Development Strategy
 1. Build core framework first (Router, MVC, security, CLI)

@@ -45,7 +45,6 @@ All three support subfolder organization for better code structure.
 - **Custom Routes**: Easily define custom URL patterns
 - **HTTP Methods**: Full support for GET, POST, PUT, DELETE, PATCH
 - **Route Parameters**: Dynamic segments (e.g., `/user/{id}`)
-- **Named Routes**: For easy URL generation
 - **Route Middleware**: Attach middleware to individual routes or groups
 
 ### Middleware
@@ -90,7 +89,7 @@ Clean, object-oriented handling of HTTP:
 Simple and flexible view rendering using native PHP:
 - **Native PHP**: No complex template syntax to learn
 - **Partial Views**: Include headers, footers, and reusable components
-- **View Helpers**: Simple functions for common tasks (escaping, old input, errors)
+- **View Helpers**: Simple functions for common tasks (escaping, input values, validation errors)
 - **HTMX-Friendly**: Designed to work seamlessly with HTMX for dynamic interactions
 - **Layout Support**: Master page pattern for consistent structure
 
