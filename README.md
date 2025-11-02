@@ -184,19 +184,11 @@ session('user_id')        // Get
 
 📚 **Complete documentation for using Seed Framework:**
 
-### User Documentation
 - **[📖 HTML Documentation](docs/html/index.html)** - Beautiful, searchable docs (open in browser)
 - **[📄 Complete Guide](docs/text/seed-framework-complete-guide.txt)** - Text guide for AI context
 - **[⚡ Quick Reference](docs/context/quick-reference.md)** - Essential commands & code snippets
 - **[💡 Examples](docs/examples/)** - Configuration files (nginx.conf, .htaccess)
 - **[📚 Documentation Guide](docs/README.md)** - Which documentation to use when
-
-### Development Documentation
-For framework development and architectural decisions:
-- **[Conventions](dev-docs/conventions.md)** - Coding standards and design philosophy
-- **[Decisions](dev-docs/decisions.md)** - All 18 architectural decisions with rationale
-- **[Framework Comparison](dev-docs/framework-comparison.md)** - vs Laravel, Symfony, CI3, etc.
-- **[Complete TODO](dev-docs/todo.md)** - Full implementation plan and progress
 
 ---
 

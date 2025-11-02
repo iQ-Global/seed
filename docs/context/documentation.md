@@ -22,13 +22,6 @@ docs/
 └── examples/
     ├── nginx.conf                         # Nginx configuration
     └── .htaccess                          # Apache configuration
-
-dev-docs/  (Development documentation - for framework contributors)
-├── description.md                         # Original framework specification
-├── conventions.md                         # Coding standards
-├── decisions.md                           # Architectural decisions
-├── framework-comparison.md                # vs other frameworks
-└── todo.md                               # Implementation plan & progress
 ```
 
 ---
@@ -119,24 +112,13 @@ All documentation covers these topics:
 ## For Developers
 ---
 
-Framework development documentation in dev-docs/:
-
-- conventions.md - Coding standards & design philosophy
-- decisions.md - All 18 architectural decisions
-- framework-comparison.md - Comparison with Laravel, CI3, etc.
-- todo.md - Complete implementation plan
-- description.md - Original specification
-
----
 ## Getting Help
----
 
 1. Check HTML documentation first (comprehensive + searchable)
 2. Use Quick Reference for common tasks
 3. Read relevant section in text guide
 4. Check Troubleshooting section
 5. Review examples in docs/examples/
-6. Consult dev-docs for architectural decisions
 
 ---
 ## Documentation Formats Explained
@@ -177,9 +159,8 @@ When contributing to Seed Framework:
 
 1. Update docs/text/seed-framework-complete-guide.txt
 2. Update docs/html/index.html (add new sections)
-3. Update docs/QUICK-REFERENCE.md if adding common patterns
+3. Update docs/context/quick-reference.md if adding common patterns
 4. Update CHANGELOG.md with changes
-5. Keep dev-docs/ in sync with framework changes
 
 ---
 ## Version History

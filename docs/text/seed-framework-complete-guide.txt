@@ -1572,8 +1572,8 @@ For examples and sample code, see:
 - GitHub: https://github.com/iQ-Global/seed
 
 For questions or issues:
-- Check dev-docs/ for architectural decisions
 - Review CHANGELOG.md for version history
+- Check GitHub Issues for known problems
 - Open an issue on GitHub
 
 Happy coding with Seed! 🌱
