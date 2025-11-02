@@ -94,7 +94,7 @@
             <!-- Logo (over sidebar) -->
             <div class="w-64 flex items-center space-x-2">
                 <h1 class="text-xl font-bold text-blue-600 dark:text-blue-400">🌱 Seed Framework</h1>
-                <span class="text-xs text-gray-500 dark:text-gray-400">v1.0.0</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">v1.0.1</span>
             </div>
             
             <!-- Right side (search + controls) -->
@@ -211,7 +211,7 @@
                 <section id="intro" class="mb-12 text-center py-12">
                     <h1 class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">🌱 Seed Framework</h1>
                     <p class="text-2xl text-gray-600 dark:text-gray-300 mb-6">A minimal PHP framework that helps you grow without taking over</p>
-                    <p class="text-lg text-gray-500 dark:text-gray-400 mb-8">Version 1.0.0 • MIT License • By iQ</p>
+                    <p class="text-lg text-gray-500 dark:text-gray-400 mb-8">Version 1.0.1 • MIT License • By iQ</p>
                     
                     <div class="flex justify-center space-x-4">
                         <a href="#quick-start" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Get Started</a>
@@ -220,11 +220,11 @@
                     
                     <div class="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">~3,500</div>
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">~4,000</div>
                             <div class="text-sm text-gray-600 dark:text-gray-300">Lines of Code</div>
                         </div>
                         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">40+</div>
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">65+</div>
                             <div class="text-sm text-gray-600 dark:text-gray-300">Helper Functions</div>
                         </div>
                         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -915,6 +915,169 @@ $response = http('https://api.example.com')
                     </div>
                 </section>
 
+                <!-- Storage -->
+                <section id="storage" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">💾 Storage & Files</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <p class="text-gray-700 dark:text-gray-300 mb-6">Seed provides a clean file storage abstraction with multi-disk support.</p>
+                        
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Basic File Operations</h3>
+                        <pre class="language-php mb-6"><code class="text-slate-100">// Store file
+storage()->put('documents/file.txt', $contents);
+
+// Get file contents
+$contents = storage()->get('documents/file.txt');
+
+// Check if exists
+if (storage()->exists('documents/file.txt')) {
+    // File exists
+}
+
+// Delete file
+storage()->delete('documents/file.txt');
+
+// Append to file
+storage()->append('logs/app.log', "New log entry\n");</code></pre>
+
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-6">Multi-Disk Support</h3>
+                        <pre class="language-php mb-6"><code class="text-slate-100">// Private storage (default)
+storage()->put('private-file.txt', $data);
+
+// Public storage (web-accessible)
+storage('public')->put('image.jpg', $imageData);
+$url = storage('public')->url('image.jpg');
+
+// Uploads storage
+storage('uploads')->put($filename, $fileData);
+
+// Cache storage
+storage('cache')->put('cache-key.json', $jsonData);
+
+// Logs storage
+storage('logs')->append('app.log', $logEntry);</code></pre>
+
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-6">Directory Operations</h3>
+                        <pre class="language-php mb-6"><code class="text-slate-100">// Create directory
+storage()->makeDirectory('documents/invoices');
+
+// Delete directory
+storage()->deleteDirectory('temp');
+
+// List files
+$files = storage()->files('documents');
+$allFiles = storage()->files('documents', true); // Recursive</code></pre>
+
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
+                            <p class="text-sm text-blue-900 dark:text-blue-200"><strong>Quick Helpers:</strong> <code class="bg-white dark:bg-gray-800 px-2 py-1 rounded">store_public()</code> to store and get URL in one call, <code class="bg-white dark:bg-gray-800 px-2 py-1 rounded">upload_path()</code> for uploaded files</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Configuration -->
+                <section id="configuration" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">⚙️ Configuration</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Configuration Files</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">Create config files in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/config/</code>:</p>
+                        
+                        <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+// app/config/app.php
+return [
+    'name' => env('APP_NAME', 'My App'),
+    'version' => '1.0.0',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
+    'features' => [
+        'registration' => true,
+        'api' => false
+    ]
+];</code></pre>
+
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-6">Access Configuration</h3>
+                        <pre class="language-php mb-6"><code class="text-slate-100">// Get configuration value
+$appName = config('app.name');
+
+// Dot notation support
+$registrationEnabled = config('app.features.registration');
+
+// Get with default
+$value = config('app.missing', 'default value');
+
+// Set at runtime
+config_set('app.mode', 'maintenance');
+
+// Check if exists
+if (config_has('app.features.api')) {
+    // Configuration exists
+}</code></pre>
+
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-6">Environment Variables</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">The <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">.env</code> file stores environment-specific configuration:</p>
+                        <pre class="language-bash mb-4"><code class="text-slate-100">APP_NAME="My Application"
+APP_ENV=development
+APP_DEBUG=true
+APP_URL=http://localhost
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_DATABASE=seed
+
+SESSION_DRIVER=file
+CSRF_ENABLED=true</code></pre>
+                        
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">Access with <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">env()</code> helper:</p>
+                        <pre class="language-php mb-4"><code class="text-slate-100">$dbHost = env('DB_HOST', 'localhost');</code></pre>
+                    </div>
+                </section>
+
+                <!-- Events -->
+                <section id="events" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🔔 Events</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <p class="text-gray-700 dark:text-gray-300 mb-6">Simple event system for decoupled code and extensibility.</p>
+                        
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Register Listeners</h3>
+                        <pre class="language-php mb-6"><code class="text-slate-100">// Register event listener
+listen('user.created', function($data) {
+    // Send welcome email
+    email()
+        ->to($data['email'])
+        ->subject('Welcome!')
+        ->body('Thanks for signing up')
+        ->send();
+});</code></pre>
+
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-6">Dispatch Events</h3>
+                        <pre class="language-php mb-6"><code class="text-slate-100">// Trigger the event
+event('user.created', [
+    'email' => $user->email,
+    'name' => $user->name
+]);</code></pre>
+
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-6">Multiple Listeners</h3>
+                        <pre class="language-php mb-6"><code class="text-slate-100">// Multiple listeners for same event
+listen('order.placed', function($order) {
+    // Send confirmation email
+});
+
+listen('order.placed', function($order) {
+    // Update inventory
+});
+
+listen('order.placed', function($order) {
+    // Log the order
+});
+
+event('order.placed', $orderData); // All 3 execute</code></pre>
+
+                        <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mt-4">
+                            <p class="text-sm text-green-900 dark:text-green-200"><strong>Use Cases:</strong> Notifications, logging, cache invalidation, webhook triggers, updating related models</p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- CLI -->
                 <section id="cli" class="mb-12">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">⚡ CLI Commands</h2>
@@ -968,7 +1131,7 @@ $response = http('https://api.example.com')
 
                     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                     
-                    <p class="text-gray-700 dark:text-gray-300 mb-6">Seed provides 40+ helper functions for common tasks:</p>
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">Seed provides 65+ helper functions for common tasks:</p>
                     
                     <div class="space-y-6">
                         <div>
@@ -1067,6 +1230,126 @@ $response = http('https://api.example.com')
                                 <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
                                     <code class="text-blue-600 dark:text-blue-400 text-sm">log_debug($msg)</code>
                                     <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Log debug</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Storage</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">storage($disk)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get storage instance</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">store_public($path)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Store & get URL</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">upload_path($file)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Upload path</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Configuration</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">config($key)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get config value</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">config_set($k, $v)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Set config</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">config_has($key)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Check config exists</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Events</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">event($name, $data)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Dispatch event</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">listen($event, $cb)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Register listener</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">has_listeners($ev)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Check listeners</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">URLs</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">url($path)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Generate URL</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">asset($path)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Asset URL</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">current_url()</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Current URL</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">url_is($pattern)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">URL match check</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Cookies</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">cookie($name)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get cookie</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">cookie_set($n, $v)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Set cookie</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">has_cookie($name)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Check cookie</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">cookie_forget($n)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Delete cookie</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Arrays</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">array_get($arr, $key)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get with dot notation</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">array_set(&$arr, $k, $v)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Set with dot notation</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">array_pluck($arr, $val)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Extract column</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">array_only($arr, $keys)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Keep only keys</p>
                                 </div>
                             </div>
                         </div>
@@ -1170,6 +1453,9 @@ $response = http('https://api.example.com')
                     { id: 'sessions', title: '💬 Sessions & Flash' },
                     { id: 'http-client', title: '🌐 HTTP Client' },
                     { id: 'email', title: '📧 Email' },
+                    { id: 'storage', title: '💾 Storage & Files' },
+                    { id: 'configuration', title: '⚙️ Configuration' },
+                    { id: 'events', title: '🔔 Events' },
                     { id: 'cli', title: '⚡ CLI Commands' },
                     { id: 'helpers', title: '🔧 Helper Functions' },
                     { id: 'best-practices', title: '⭐ Best Practices' }

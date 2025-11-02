@@ -2,7 +2,7 @@
 Seed Framework - Complete Guide for AI Context
 ================================================================================
 
-Version: 1.0.0
+Version: 1.0.1
 License: MIT
 Author: iQ
 Website: https://github.com/iQ-Global/seed
@@ -24,13 +24,15 @@ Table of Contents
 11. Session & Flash Messages
 12. HTTP Client
 13. Email
-14. CLI Commands
-15. Helper Functions Reference
-16. Configuration
-17. Error Handling & Logging
-18. Best Practices
-19. Common Patterns
-20. Troubleshooting
+14. Storage & Files
+15. Configuration
+16. Events
+17. CLI Commands
+18. Helper Functions Reference
+19. Error Handling & Logging
+20. Best Practices
+21. Common Patterns
+22. Troubleshooting
 
 ================================================================================
 1. Overview & Philosophy
@@ -968,7 +970,195 @@ MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME="My Application"
 
 ================================================================================
-14. CLI Commands
+14. Storage & Files
+================================================================================
+
+File Storage Management:
+
+Store file:
+storage()->put('documents/file.txt', $contents);
+
+Get file contents:
+$contents = storage()->get('documents/file.txt');
+
+Check if exists:
+if (storage()->exists('documents/file.txt')) {
+    // File exists
+}
+
+Delete file:
+storage()->delete('documents/file.txt');
+
+Append to file:
+storage()->append('logs/app.log', "New log entry\n");
+
+Copy file:
+storage()->copy('original.txt', 'backup.txt');
+
+Move file:
+storage()->move('old-location.txt', 'new-location.txt');
+
+Get file info:
+$size = storage()->size('document.pdf');
+$modified = storage()->lastModified('document.pdf');
+
+Multi-Disk Support:
+
+Private storage (default):
+storage()->put('private-file.txt', $data);
+
+Public storage (accessible via URL):
+storage('public')->put('image.jpg', $imageData);
+$url = storage('public')->url('image.jpg');
+// Returns: http://yoursite.com/storage/public/image.jpg
+
+Uploads storage:
+storage('uploads')->put($filename, $fileData);
+
+Cache storage:
+storage('cache')->put('cache-key.json', $jsonData);
+
+Logs storage:
+storage('logs')->append('app.log', $logEntry);
+
+Directory Operations:
+
+Create directory:
+storage()->makeDirectory('documents/invoices');
+
+Delete directory:
+storage()->deleteDirectory('temp');
+
+List files:
+$files = storage()->files('documents');
+$allFiles = storage()->files('documents', true);  // Recursive
+
+Quick helpers:
+
+Store public file and get URL:
+$url = store_public('profile.jpg', $imageData);
+
+Get upload path:
+$path = upload_path('user-avatar.jpg');
+
+================================================================================
+15. Configuration
+================================================================================
+
+Configuration Files:
+
+Create config files in app/config/:
+
+app/config/app.php:
+<?php
+return [
+    'name' => env('APP_NAME', 'My App'),
+    'version' => '1.0.0',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
+    'features' => [
+        'registration' => true,
+        'api' => false
+    ]
+];
+
+Access configuration:
+$appName = config('app.name');
+$timezone = config('app.timezone');
+$features = config('app.features');
+
+Dot notation support:
+$registrationEnabled = config('app.features.registration');
+
+Get with default:
+$value = config('app.missing', 'default value');
+
+Set configuration at runtime:
+config_set('app.mode', 'maintenance');
+
+Check if config exists:
+if (config_has('app.features.api')) {
+    // Configuration exists
+}
+
+Get all configuration:
+$allConfig = config();
+
+Environment Variables (.env):
+
+The .env file contains environment-specific configuration. Never commit to git.
+
+Key variables:
+APP_NAME="My Application"
+APP_ENV=development
+APP_DEBUG=true
+APP_URL=http://localhost
+APP_TIMEZONE=UTC
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_DATABASE=seed
+DB_USERNAME=root
+DB_PASSWORD=
+
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+CSRF_ENABLED=true
+
+Access with env() helper:
+$dbHost = env('DB_HOST', 'localhost');
+
+================================================================================
+16. Events
+================================================================================
+
+Simple Event System:
+
+Register event listener:
+listen('user.created', function($data) {
+    // Send welcome email
+    email()
+        ->to($data['email'])
+        ->subject('Welcome!')
+        ->body('Thanks for signing up')
+        ->send();
+});
+
+Dispatch event:
+event('user.created', [
+    'email' => $user->email,
+    'name' => $user->name
+]);
+
+Multiple listeners:
+listen('order.placed', function($order) {
+    // Send confirmation email
+});
+
+listen('order.placed', function($order) {
+    // Update inventory
+});
+
+listen('order.placed', function($order) {
+    // Log the order
+});
+
+event('order.placed', $orderData);  // All 3 listeners will execute
+
+Check if event has listeners:
+if (has_listeners('user.login')) {
+    event('user.login', $userData);
+}
+
+Common use cases:
+- Sending notifications
+- Logging events
+- Updating related models
+- Cache invalidation
+- Webhook triggers
+
+================================================================================
+17. CLI Commands
 ================================================================================
 
 Running CLI:
@@ -1027,7 +1217,7 @@ $cli->register('db:seed', function($args) use ($cli) {
 }, 'Seed the database with test data');
 
 ================================================================================
-15. Helper Functions Reference
+18. Helper Functions Reference
 ================================================================================
 
 General Helpers:
@@ -1146,76 +1336,92 @@ log_error($message, $context = [])
 log_debug($message, $context = [])
     Log debug message
 
+Storage Helpers:
+
+storage($disk = 'private')
+    Get storage instance for disk (private, public, uploads, cache, logs)
+
+store_public($path, $contents)
+    Store file in public storage and return URL
+
+upload_path($filename)
+    Get full path for uploaded file
+
+Config Helpers:
+
+config($key = null, $default = null)
+    Get configuration value (supports dot notation)
+
+config_set($key, $value)
+    Set configuration value at runtime
+
+config_has($key)
+    Check if configuration exists
+
+Event Helpers:
+
+event($name, $data = [])
+    Dispatch an event
+
+listen($event, $callback)
+    Register event listener
+
+has_listeners($event)
+    Check if event has listeners
+
+URL Helpers:
+
+url($path = '')
+    Generate full URL for path
+
+asset($path)
+    Generate URL for asset (in assets/ folder)
+
+current_url()
+    Get current full URL
+
+base_url()
+    Get base URL
+
+url_is($pattern)
+    Check if current URL matches pattern (supports wildcards)
+
+Cookie Helpers:
+
+cookie($name, $default = null)
+    Get cookie value
+
+cookie_set($name, $value, $minutes = 60)
+    Set cookie with expiration
+
+has_cookie($name)
+    Check if cookie exists
+
+cookie_forget($name)
+    Delete cookie
+
+Array Helpers:
+
+array_get($array, $key, $default = null)
+    Get value from array using dot notation
+
+array_set(&$array, $key, $value)
+    Set value in array using dot notation
+
+array_has($array, $key)
+    Check if array has key (supports dot notation)
+
+array_pluck($array, $value, $key = null)
+    Extract column of values from array
+
+array_only($array, $keys)
+    Keep only specified keys
+
+array_except($array, $keys)
+    Remove specified keys
+
 ================================================================================
-16. Configuration
-================================================================================
-
-Environment Configuration (.env):
-
-The .env file contains all configuration. Never commit this to git.
-
-Application:
-APP_ENV=development       # Environment: development, production
-APP_DEBUG=true           # Show detailed errors
-APP_URL=http://localhost # Base URL of application
-
-Database:
-DB_CONNECTION=mysql      # Database driver: mysql, pgsql
-DB_HOST=localhost        # Database host
-DB_PORT=3306            # Database port
-DB_DATABASE=seed        # Database name
-DB_USERNAME=root        # Database username
-DB_PASSWORD=            # Database password
-
-Session:
-SESSION_DRIVER=file     # Session driver (file-based only in v1.0)
-SESSION_LIFETIME=120    # Session lifetime in minutes
-
-Security:
-CSRF_ENABLED=true       # Enable CSRF protection
-
-Email:
-MAIL_HOST=localhost
-MAIL_PORT=587
-MAIL_USERNAME=
-MAIL_PASSWORD=
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=noreply@example.com
-MAIL_FROM_NAME="Seed Framework"
-
-Custom Configuration:
-
-Add your own variables to .env:
-MY_API_KEY=abc123
-MY_SETTING=value
-
-Access in code:
-$apiKey = env('MY_API_KEY');
-
-PHP Configuration Files (optional):
-
-You can create PHP config files in app/config/ for complex configuration:
-
-app/config/services.php:
-<?php
-return [
-    'stripe' => [
-        'key' => env('STRIPE_KEY'),
-        'secret' => env('STRIPE_SECRET')
-    ],
-    'aws' => [
-        'key' => env('AWS_KEY'),
-        'secret' => env('AWS_SECRET'),
-        'region' => 'us-east-1'
-    ]
-];
-
-Load and use:
-$config = require APP_PATH . '/config/services.php';
-$stripeKey = $config['stripe']['key'];
-
-================================================================================
-17. Error Handling & Logging
+19. Error Handling & Logging
 ================================================================================
 
 Error Modes:
@@ -1286,7 +1492,7 @@ Logger::error('Error occurred', ['exception' => $e->getMessage()]);
 Logger::debug('Debug info', ['data' => $data]);
 
 ================================================================================
-18. Best Practices
+20. Best Practices
 ================================================================================
 
 Security:
@@ -1341,7 +1547,7 @@ Validation:
 4. Use flash messages for feedback
 
 ================================================================================
-19. Common Patterns
+21. Common Patterns
 ================================================================================
 
 CRUD Operations:
@@ -1487,7 +1693,7 @@ public function loadMore() {
 }
 
 ================================================================================
-20. Troubleshooting
+22. Troubleshooting
 ================================================================================
 
 Common Issues:

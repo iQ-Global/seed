@@ -321,6 +321,138 @@ $debug = env('APP_DEBUG', false);
 
 ---
 
+## Storage & Files
+
+```php
+// Store file
+storage()->put('documents/report.pdf', $pdfData);
+
+// Get file
+$contents = storage()->get('documents/report.pdf');
+
+// Public storage with URL
+storage('public')->put('images/logo.png', $imageData);
+$url = storage('public')->url('images/logo.png');
+
+// Delete file
+storage()->delete('temp/file.txt');
+
+// Directory operations
+storage()->makeDirectory('uploads/2025');
+$files = storage()->files('uploads');
+```
+
+---
+
+## Configuration
+
+```php
+// app/config/app.php
+return [
+    'name' => env('APP_NAME', 'My App'),
+    'features' => ['api' => true]
+];
+
+// Access config
+$appName = config('app.name');
+$apiEnabled = config('app.features.api');
+
+// Set runtime config
+config_set('app.mode', 'maintenance');
+
+// Check if exists
+if (config_has('app.features.api')) {
+    // ...
+}
+```
+
+---
+
+## Events
+
+```php
+// Register listener
+listen('user.created', function($data) {
+    // Send welcome email
+    email()->to($data['email'])->subject('Welcome!')->send();
+});
+
+// Dispatch event
+event('user.created', ['email' => $user->email]);
+
+// Multiple listeners execute in order
+listen('order.placed', function($order) { /* ... */ });
+listen('order.placed', function($order) { /* ... */ });
+event('order.placed', $orderData);
+```
+
+---
+
+## URLs & Assets
+
+```php
+// Generate URL
+$url = url('/users/123');  // http://yoursite.com/users/123
+
+// Asset URL
+$cssUrl = asset('css/app.css');  // http://yoursite.com/assets/css/app.css
+
+// Current URL
+$current = current_url();
+
+// Check URL pattern
+if (url_is('/admin/*')) {
+    // Current URL starts with /admin/
+}
+```
+
+---
+
+## Cookies
+
+```php
+// Set cookie (60 minutes default)
+cookie_set('user_preference', 'dark_mode');
+cookie_set('remember_token', $token, 1440);  // 24 hours
+
+// Get cookie
+$preference = cookie('user_preference', 'light_mode');
+
+// Check if exists
+if (has_cookie('remember_token')) {
+    // Cookie exists
+}
+
+// Delete cookie
+cookie_forget('user_preference');
+```
+
+---
+
+## Array Helpers
+
+```php
+// Dot notation access
+$data = ['user' => ['profile' => ['name' => 'John']]];
+$name = array_get($data, 'user.profile.name');  // 'John'
+
+// Set with dot notation
+array_set($data, 'user.profile.age', 30);
+
+// Pluck values
+$users = [
+    ['id' => 1, 'name' => 'John'],
+    ['id' => 2, 'name' => 'Jane']
+];
+$names = array_pluck($users, 'name');  // ['John', 'Jane']
+
+// Filter keys
+$filtered = array_only($data, ['name', 'email']);
+$without = array_except($data, ['password']);
+```
+
+---
+
 ## Common Patterns
 
 ### CRUD Controller

@@ -5,6 +5,46 @@ All notable changes to Seed Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-11-02
+
+### Added
+- **Storage Module** - File and directory operations
+  - `storage()` helper for file operations
+  - Support for public, private, uploads, cache, logs disks
+  - Methods: put, get, delete, exists, append, copy, move
+  - Directory operations: makeDirectory, deleteDirectory, files listing
+  - URL generation for public files
+- **Configuration System** - Config file management
+  - `config()` helper for accessing configuration
+  - Load PHP config files from `app/config/`
+  - Dot notation support (e.g., `config('app.name')`)
+  - Example `app/config/app.php` included
+- **Event System** - Simple observer pattern
+  - `event()` and `listen()` helpers
+  - Event dispatching and listening
+  - Built-in framework events support
+- **URL Helpers** - URL generation and manipulation
+  - `url()` - Generate full URLs
+  - `asset()` - Asset URLs
+  - `current_url()` - Get current URL
+  - `url_is()` - Check if current URL matches pattern
+- **Cookie Helpers** - Cookie management
+  - `cookie()`, `cookie_set()`, `has_cookie()`, `cookie_forget()`
+  - Simple, intuitive API
+- **Array Helpers** - Array manipulation utilities
+  - `array_get()`, `array_set()`, `array_has()` with dot notation
+  - `array_pluck()`, `array_only()`, `array_except()`
+  - Clean data manipulation
+
+### Changed
+- Updated version to 1.0.1 in composer.json
+- Added `app/storage/public/` directory for public file storage
+
+### Documentation
+- Created v1.0.1 development plan in dev-docs
+
+---
+
 ## [1.0.0] - 2025-11-01
 
 ### Initial Release 🎉
