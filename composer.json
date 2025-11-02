@@ -1,0 +1,31 @@
+{
+    "name": "iq/seed",
+    "description": "A minimal PHP framework that helps you grow without taking over",
+    "version": "1.0.0",
+    "keywords": ["framework", "minimal", "php", "mvc", "seed"],
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Seed\\": "system/",
+            "App\\": "app/"
+        },
+        "files": [
+            "system/helpers/helpers.php",
+            "system/helpers/security.php",
+            "system/helpers/form.php",
+            "system/helpers/session.php",
+            "system/helpers/database.php",
+            "system/helpers/auth.php",
+            "system/helpers/validation.php",
+            "system/helpers/http.php",
+            "system/helpers/email.php"
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
+

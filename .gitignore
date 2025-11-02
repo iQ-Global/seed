@@ -1,0 +1,37 @@
+# Environment
+.env
+
+# Dependencies
+/vendor/
+composer.lock
+
+# Storage (logs, cache, sessions, uploads)
+/app/storage/logs/*
+/app/storage/cache/*
+/app/storage/sessions/*
+/app/storage/uploads/*
+
+# Keep .gitkeep files
+!.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.backup*
+tmp/
+dev-docs/
+website/
+
+# Test files (development only)
+test.php

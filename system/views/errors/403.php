@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>403 - Forbidden</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        h1 { color: #e67e22; }
+        p { color: #666; }
+    </style>
+</head>
+<body>
+    <h1>403 - Forbidden</h1>
+    <p>You don't have permission to access this resource.</p>
+</body>
+</html>
+

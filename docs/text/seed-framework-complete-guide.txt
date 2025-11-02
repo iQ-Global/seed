@@ -1,0 +1,1580 @@
+================================================================================
+Seed Framework - Complete Guide for AI Context
+================================================================================
+
+Version: 1.0.0
+License: MIT
+Author: iQ
+Website: https://github.com/iQ-Global/seed
+
+================================================================================
+Table of Contents
+================================================================================
+
+1. Overview & Philosophy
+2. Installation & Setup
+3. Routing & Middleware
+4. Controllers & Models
+5. Views & Templates
+6. Request & Response
+7. Database
+8. Validation
+9. Security
+10. Authentication
+11. Session & Flash Messages
+12. HTTP Client
+13. Email
+14. CLI Commands
+15. Helper Functions Reference
+16. Configuration
+17. Error Handling & Logging
+18. Best Practices
+19. Common Patterns
+20. Troubleshooting
+
+================================================================================
+1. Overview & Philosophy
+================================================================================
+
+Seed is a minimal PHP framework designed for simplicity and developer freedom.
+
+Core Principles:
+- Minimal but capable (only ~3,500 lines of code)
+- Easy to learn (clear patterns, no magic)
+- Developer freedom (opinionated where it helps, flexible otherwise)
+- Modern yet accessible (PHP 7.0+)
+- AI-friendly (clean, well-documented code)
+
+Architecture:
+- MVC pattern (Model-View-Controller)
+- Middleware-based routing (inspired by Go's Gin)
+- Native PHP templates (no complex syntax)
+- Hybrid approach: OOP core + procedural helpers
+
+Requirements:
+- PHP 7.0 or higher
+- Composer for dependency management
+- Apache (with mod_rewrite) or Nginx
+- PDO extension (for database)
+- cURL extension (for HTTP client)
+
+================================================================================
+2. Installation & Setup
+================================================================================
+
+Basic Installation:
+
+1. Clone or download framework:
+   git clone https://github.com/iQ-Global/seed.git myproject
+   cd myproject
+
+2. Install dependencies:
+   composer install
+
+3. Configure environment:
+   cp .env.example .env
+   # Edit .env with your settings
+
+4. Set up web server:
+   - Apache: .htaccess included and ready
+   - Nginx: See docs/examples/nginx.conf
+   - Development: ./seed serve
+
+5. Verify installation:
+   Visit http://localhost:8000 (or your configured URL)
+
+Directory Structure:
+
+/
+├── index.php              # Entry point
+├── .env                   # Environment config (git-ignored)
+├── .htaccess             # Apache config
+├── composer.json          # Dependencies
+├── seed                   # CLI executable
+├── app/                   # Your application code
+│   ├── controllers/      # Controllers
+│   ├── models/           # Models
+│   ├── views/            # View templates
+│   ├── middleware/       # Custom middleware
+│   ├── helpers/          # Custom helpers
+│   ├── routes.php        # Route definitions
+│   ├── commands.php      # CLI commands
+│   └── storage/          # Logs, sessions, cache
+├── system/               # Framework core
+│   ├── Core/            # Core classes
+│   ├── modules/         # Database, Auth, HTTP, Email
+│   └── helpers/         # Helper functions
+└── assets/              # CSS, JS, images
+
+Environment Variables (.env):
+
+APP_ENV=development          # development or production
+APP_DEBUG=true              # Show detailed errors
+APP_URL=http://localhost    # Base URL
+
+DB_CONNECTION=mysql         # mysql or pgsql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=seed
+DB_USERNAME=root
+DB_PASSWORD=
+
+SESSION_DRIVER=file         # File-based sessions
+SESSION_LIFETIME=120        # Minutes
+
+CSRF_ENABLED=true           # CSRF protection
+
+MAIL_HOST=localhost
+MAIL_PORT=587
+MAIL_FROM_ADDRESS=noreply@example.com
+
+================================================================================
+3. Routing & Middleware
+================================================================================
+
+Route Definition (app/routes.php):
+
+Basic routes use controller/function syntax:
+
+<?php
+// Simple routes
+$router->get('/', 'homeController/index');
+$router->post('/users', 'userController/store');
+$router->put('/users/{id}', 'userController/update');
+$router->delete('/users/{id}', 'userController/destroy');
+
+// Route with parameter
+$router->get('/user/{id}', 'userController/show');
+$router->get('/posts/{id}/comments/{commentId}', 'postController/showComment');
+
+// Multiple HTTP methods
+$router->match(['GET', 'POST'], '/form', 'formController/handle');
+
+Middleware:
+
+Apply middleware to routes:
+
+// Single middleware
+$router->post('/profile', 'userController/update')
+    ->middleware('auth');
+
+// Multiple middleware
+$router->post('/admin/users', 'adminController/createUser')
+    ->middleware(['auth', 'csrf']);
+
+// Route groups with middleware
+$router->group(['middleware' => 'auth'], function($r) {
+    $r->get('/dashboard', 'dashboardController/index');
+    $r->get('/profile', 'userController/profile');
+    $r->post('/profile', 'userController/updateProfile');
+});
+
+// Route groups with prefix
+$router->group(['prefix' => 'api'], function($r) {
+    $r->get('/users', 'apiController/users');
+    $r->get('/posts', 'apiController/posts');
+});
+
+// Combine prefix and middleware
+$router->group(['prefix' => 'admin', 'middleware' => 'auth'], function($r) {
+    $r->get('/dashboard', 'adminController/dashboard');
+    $r->get('/users', 'adminController/users');
+});
+
+Built-in Middleware:
+
+1. CsrfMiddleware - CSRF token validation (POST/PUT/DELETE/PATCH)
+2. RateLimitMiddleware - Rate limiting (60 req/min default)
+3. AuthMiddleware - Authentication requirement
+
+Custom Middleware:
+
+Create in app/middleware/:
+
+<?php
+namespace App\Middleware;
+use Seed\Core\Middleware;
+
+class CustomMiddleware extends Middleware {
+    public function handle($request, $next) {
+        // Before controller logic
+        if ($condition) {
+            redirect('/error');
+        }
+        
+        // Continue to next middleware/controller
+        return $next($request);
+    }
+}
+
+Register in routes:
+$router->get('/path', 'controller/method')->middleware('custom');
+
+================================================================================
+4. Controllers & Models
+================================================================================
+
+Controllers (app/controllers/):
+
+File naming: mixedCase with Controller suffix (e.g., userController.php)
+
+<?php
+namespace App\Controllers;
+use Seed\Core\Controller;
+
+class userController extends Controller {
+    // Show user list
+    public function index() {
+        $users = db()->query("SELECT * FROM users");
+        view('users/index', ['users' => $users]);
+    }
+    
+    // Show single user
+    public function show($id) {
+        $user = db()->queryOne("SELECT * FROM users WHERE id = ?", [$id]);
+        
+        if (!$user) {
+            return $this->response->notFound();
+        }
+        
+        view('users/show', ['user' => $user]);
+    }
+    
+    // Create user
+    public function store() {
+        $rules = [
+            'name' => 'required|min:3',
+            'email' => 'required|email'
+        ];
+        
+        if (!validate($this->request->post(), $rules)) {
+            flash('error', 'Validation failed');
+            return redirect_back();
+        }
+        
+        $id = db()->insert('users', [
+            'name' => $this->request->post('name'),
+            'email' => $this->request->post('email')
+        ]);
+        
+        flash('success', 'User created!');
+        redirect('/users/' . $id);
+    }
+    
+    // JSON API response
+    public function api() {
+        $users = db()->query("SELECT * FROM users");
+        json(['data' => $users], 200);
+    }
+}
+
+Controller Methods:
+- $this->request - Access Request object
+- $this->response - Access Response object
+
+Models (app/models/):
+
+File naming: mixedCase with Model suffix (e.g., userModel.php)
+
+<?php
+namespace App\Models;
+use Seed\Core\Model;
+
+class userModel extends Model {
+    protected $table = 'users';
+    
+    // Get all active users
+    public function getActive() {
+        return $this->query("SELECT * FROM {$this->table} WHERE status = ?", ['active']);
+    }
+    
+    // Get user by ID
+    public function find($id) {
+        $result = $this->query("SELECT * FROM {$this->table} WHERE id = ?", [$id]);
+        return $result[0] ?? null;
+    }
+    
+    // Create user
+    public function create($data) {
+        return $this->insert($data);
+    }
+    
+    // Update user
+    public function updateUser($id, $data) {
+        return $this->update($data, ['id' => $id]);
+    }
+}
+
+Model Methods (via $this->db):
+- query($sql, $params) - Execute query, return all rows
+- queryOne($sql, $params) - Execute query, return first row
+- insert($data) - Insert row, return ID
+- update($data, $where) - Update rows
+- delete($where) - Delete rows
+
+Using Models in Controllers:
+
+$model = new \App\Models\userModel();
+$users = $model->getActive();
+
+================================================================================
+5. Views & Templates
+================================================================================
+
+Views (app/views/):
+
+Native PHP templates, no complex syntax to learn.
+
+File naming: Flexible (e.g., index.php, user-profile.php)
+
+Basic view (app/views/home.php):
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title><?= esc($title) ?></title>
+</head>
+<body>
+    <h1><?= esc($heading) ?></h1>
+    <p><?= esc($message) ?></p>
+</body>
+</html>
+
+Rendering Views:
+
+From controller:
+view('home', ['title' => 'Welcome', 'heading' => 'Hello!']);
+
+Partial Views:
+
+Include headers, footers, etc.:
+
+<?php include 'partials/header.php'; ?>
+
+<main>
+    <h1><?= esc($title) ?></h1>
+</main>
+
+<?php include 'partials/footer.php'; ?>
+
+View Helpers:
+
+- esc($value) - Escape HTML
+- esc($value, 'js') - Escape for JavaScript
+- esc($value, 'url') - URL encode
+- csrf_field() - Output CSRF token field
+- input_value('name') - Repopulate form field
+- form_error('name') - Show validation error
+- has_error('name') - Check if field has error
+- show_error('name') - Display formatted error
+- show_flash('success') - Display flash message
+
+Form Example:
+
+<form method="POST" action="/users">
+    <?= csrf_field() ?>
+    
+    <label>Name:</label>
+    <input type="text" name="name" value="<?= input_value('name') ?>">
+    <?= show_error('name') ?>
+    
+    <label>Email:</label>
+    <input type="email" name="email" value="<?= input_value('email') ?>">
+    <?= show_error('email') ?>
+    
+    <button type="submit">Submit</button>
+</form>
+
+<?= show_flash('success') ?>
+<?= show_flash('error') ?>
+
+View Override System:
+
+Views are checked in this order:
+1. app/views/ (your custom views)
+2. system/views/ (framework default views)
+
+This allows you to customize error pages and framework views without modifying core files.
+
+================================================================================
+6. Request & Response
+================================================================================
+
+Request Object ($this->request in controllers):
+
+GET Data:
+$this->request->get('name')           # Single GET parameter
+$this->request->get('name', 'default') # With default
+$this->request->get()                  # All GET parameters
+
+POST Data:
+$this->request->post('email')          # Single POST parameter
+$this->request->post()                 # All POST parameters
+
+JSON Data:
+$this->request->json('key')            # Single JSON value
+$this->request->json()                 # All JSON data (from request body)
+
+Files:
+$this->request->file('upload')         # Uploaded file
+$this->request->files()                # All uploaded files
+
+Other:
+$this->request->method()               # HTTP method (GET, POST, etc.)
+$this->request->uri()                  # Request URI
+$this->request->header('User-Agent')   # Request header
+$this->request->cookie('session_id')   # Cookie value
+
+Response Object ($this->response in controllers):
+
+HTML Response:
+$this->response->send('<h1>Hello</h1>');
+
+JSON Response:
+$this->response->json(['status' => 'ok'], 200);
+# Or use helper: json(['status' => 'ok'], 200);
+
+Redirect:
+$this->response->redirect('/users');
+# Or use helper: redirect('/users');
+
+Not Found:
+$this->response->notFound();
+
+Error:
+$this->response->error('Something went wrong', 500);
+
+Set Status SET STATUS & HEADERS: Headers:
+$this->response->status(404)->send('Not found');
+$this->response->header('Content-Type', 'text/plain')
+               ->send('Plain text');
+
+================================================================================
+7. Database
+================================================================================
+
+Database Connection:
+
+Configured in .env file:
+DB_CONNECTION=mysql    # or pgsql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=seed
+DB_USERNAME=root
+DB_PASSWORD=
+
+Access Database:
+
+Using helper function:
+$db = db();
+
+Or in controllers/models:
+$this->db
+
+Query Methods:
+
+Execute Query (returns array of objects):
+$users = db()->query("SELECT * FROM users WHERE status = ?", ['active']);
+
+foreach ($users as $user) {
+    echo $user->name;
+}
+
+Query One (returns single object or null):
+$user = db()->queryOne("SELECT * FROM users WHERE id = ?", [1]);
+
+if ($user) {
+    echo $user->name;
+}
+
+Insert (returns inserted ID):
+$id = db()->insert('users', [
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+    'status' => 'active'
+]);
+
+Bulk Insert (returns number of rows):
+$count = db()->bulkInsert('users', [
+    ['name' => 'User 1', 'email' => 'user1@example.com'],
+    ['name' => 'User 2', 'email' => 'user2@example.com']
+]);
+
+Update (returns number of affected rows):
+$affected = db()->update('users', 
+    ['status' => 'inactive'],
+    ['id' => 5]
+);
+
+# Multiple conditions
+$affected = db()->update('users',
+    ['status' => 'active'],
+    ['status' => 'pending', 'created_at >' => '2025-01-01']
+);
+
+Delete (returns number of affected rows):
+$affected = db()->delete('users', ['id' => 5]);
+
+Raw Query (explicit opt-in for complex queries):
+$result = db()->raw("
+    SELECT u.*, COUNT(p.id) as post_count
+    FROM users u
+    LEFT JOIN posts p ON p.user_id = u.id
+    GROUP BY u.id
+");
+
+Transactions:
+
+db()->beginTransaction();
+
+try {
+    db()->insert('users', ['name' => 'John']);
+    db()->insert('profiles', ['user_id' => $id]);
+    
+    db()->commit();
+} catch (Exception $e) {
+    db()->rollback();
+    throw $e;
+}
+
+Load SQL File:
+
+db()->loadSQL('app/sql/create_tables.sql');
+
+Example SQL file (app/sql/create_tables.sql):
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+Multiple Database Connections:
+
+$mysql = db('mysql');   # Uses DB_CONNECTION from .env
+$pgsql = db('pgsql');   # Can specify different driver
+
+================================================================================
+8. Validation
+================================================================================
+
+Simple Validation:
+
+$rules = [
+    'name' => 'required|min:3|max:50',
+    'email' => 'required|email',
+    'age' => 'required|numeric|min:18',
+    'username' => 'required|alpha_num|min:4'
+];
+
+if (!validate($this->request->post(), $rules)) {
+    // Validation failed
+    // Errors automatically available in views
+    return redirect_back();
+}
+
+Validation with Object:
+
+$validator = validator($data, $rules);
+
+if ($validator->failed()) {
+    $errors = $validator->errors();  # Get all errors
+    return redirect_back();
+}
+
+Validation Rules:
+
+required          - Field must be present and not empty
+email             - Must be valid email address
+numeric           - Must be numeric
+alpha             - Letters only
+alpha_num         - Letters and numbers only
+url               - Must be valid URL
+min:X             - Minimum length (string) or value (number)
+max:X             - Maximum length (string) or value (number)
+
+Custom Error Messages:
+
+$messages = [
+    'email.required' => 'Please provide your email address',
+    'email.email' => 'Email address must be valid',
+    'age.min' => 'You must be at least 18 years old'
+];
+
+$validator = validator($data, $rules, $messages);
+
+Displaying Errors in Views:
+
+<!-- Check if field has error -->
+<?php if (has_error('email')): ?>
+    <span class="error"><?= form_error('email') ?></span>
+<?php endif; ?>
+
+<!-- Or use helper -->
+<?= show_error('email') ?>
+
+<!-- Repopulate form fields -->
+<input type="text" name="email" value="<?= input_value('email') ?>">
+
+================================================================================
+9. Security
+================================================================================
+
+CSRF Protection:
+
+Enabled by default in .env:
+CSRF_ENABLED=true
+
+Add to forms:
+<form method="POST">
+    <?= csrf_field() ?>
+    <!-- form fields -->
+</form>
+
+Apply middleware to routes:
+$router->post('/users', 'userController/store')->middleware('csrf');
+
+Manual Verification:
+if (!verify_csrf($token)) {
+    die('CSRF token invalid');
+}
+
+XSS Prevention:
+
+Always escape output:
+<?= esc($userInput) ?>              # HTML context
+<?= esc($userInput, 'js') ?>        # JavaScript context
+<?= esc($userInput, 'url') ?>       # URL context
+
+SQL Injection Prevention:
+
+Always use prepared statements:
+# GOOD - parameterized query
+$users = db()->query("SELECT * FROM users WHERE email = ?", [$email]);
+
+# BAD - never do this
+$users = db()->raw("SELECT * FROM users WHERE email = '$email'");
+
+Password Hashing:
+
+Use Auth module:
+$hash = \Seed\Modules\Auth\Auth::hashPassword('password123');
+
+if (\Seed\Modules\Auth\Auth::verifyPassword('password123', $hash)) {
+    // Password correct
+}
+
+Rate Limiting:
+
+Apply to routes:
+$router->post('/login', 'authController/login')
+    ->middleware('rate_limit');
+
+Default: 60 requests per minute per IP
+
+================================================================================
+10. Authentication
+================================================================================
+
+Password Hashing:
+
+use Seed\Modules\Auth\Auth;
+
+# Hash password
+$hash = Auth::hashPassword($password);
+
+# Verify password
+if (Auth::verifyPassword($password, $hash)) {
+    // Correct password
+}
+
+Login:
+
+Auth::login($userId);  # Stores user ID in session
+
+Logout:
+
+Auth::logout();  # Removes user ID from session
+
+Check Authentication:
+
+if (Auth::check()) {
+    // User is logged in
+}
+
+# Or use helper
+if (is_logged_in()) {
+    // User is logged in
+}
+
+Get Current User ID:
+
+$userId = Auth::id();
+
+# Or use helper
+$userId = user_id();
+
+Get User with Callback:
+
+$user = auth(function($userId) {
+    return db()->queryOne("SELECT * FROM users WHERE id = ?", [$userId]);
+});
+
+Protect Routes:
+
+$router->get('/dashboard', 'dashboardController/index')
+    ->middleware('auth');
+
+Custom Auth Middleware (app/middleware/AuthMiddleware.php):
+
+<?php
+namespace App\Middleware;
+use Seed\Core\Middleware;
+use Seed\Modules\Auth\Auth;
+
+class AuthMiddleware extends Middleware {
+    public function handle($request, $next) {
+        if (!Auth::check()) {
+            redirect('/login');
+        }
+        
+        return $next($request);
+    }
+}
+
+Complete Login Example:
+
+# Controller
+public function login() {
+    $email = $this->request->post('email');
+    $password = $this->request->post('password');
+    
+    $user = db()->queryOne("SELECT * FROM users WHERE email = ?", [$email]);
+    
+    if ($user && Auth::verifyPassword($password, $user->password)) {
+        Auth::login($user->id);
+        flash('success', 'Logged in successfully');
+        redirect('/dashboard');
+    }
+    
+    flash('error', 'Invalid credentials');
+    redirect_back();
+}
+
+public function logout() {
+    Auth::logout();
+    flash('success', 'Logged out successfully');
+    redirect('/');
+}
+
+================================================================================
+11. Session & Flash Messages
+================================================================================
+
+Session Management:
+
+Sessions are file-based by default (configured in .env):
+SESSION_DRIVER=file
+SESSION_LIFETIME=120  # minutes
+
+Get Session Data:
+$value = session('key');
+$value = session('key', 'default');
+
+Set Session Data:
+session('key', 'value');
+
+Remove Session Key:
+session_remove('key');
+
+Destroy Session:
+destroy_session();
+
+Flash Messages:
+
+One-time messages that survive a single redirect.
+
+Set Flash:
+flash('success', 'User created successfully!');
+flash('error', 'Something went wrong');
+flash('info', 'Please check your email');
+
+Check if Flash Exists:
+if (has_flash('success')) {
+    // Flash message exists
+}
+
+Get Flash (auto-removes after retrieval):
+$message = get_flash('success');
+
+Display Flash in Views:
+<?= show_flash('success') ?>
+<?= show_flash('error') ?>
+<?= show_flash('info') ?>
+
+Flash with Custom HTML:
+<?php if (has_flash('success')): ?>
+    <div class="alert alert-success">
+        <?= esc(get_flash('success')) ?>
+    </div>
+<?php endif; ?>
+
+================================================================================
+12. HTTP Client
+================================================================================
+
+Making External API Requests:
+
+Basic GET request:
+$response = http('https://api.example.com')->get('/users');
+
+if ($response->ok()) {
+    $data = $response->json();
+}
+
+POST with JSON:
+$response = http('https://api.example.com')
+    ->post('/users', ['name' => 'John', 'email' => 'john@example.com']);
+
+PUT request:
+$response = http('https://api.example.com')
+    ->put('/users/1', ['name' => 'Updated Name']);
+
+Delete request:
+$response = http('https://api.example.com')
+    ->delete('/users/1');
+
+Authentication:
+
+API Key:
+$response = http('https://api.example.com')
+    ->apiKey('your-api-key')
+    ->get('/data');
+
+# Custom header name
+$response = http('https://api.example.com')
+    ->apiKey('your-key', 'X-Custom-API-Key')
+    ->get('/data');
+
+Bearer Token:
+$response = http('https://api.example.com')
+    ->bearerToken('your-token')
+    ->get('/data');
+
+Basic Auth:
+$response = http('https://api.example.com')
+    ->basicAuth('username', 'password')
+    ->get('/data');
+
+Custom Headers:
+$response = http('https://api.example.com')
+    ->header('X-Custom-Header', 'value')
+    ->get('/data');
+
+# Multiple headers
+$response = http('https://api.example.com')
+    ->headers([
+        'X-Header-1' => 'value1',
+        'X-Header-2' => 'value2'
+    ])
+    ->get('/data');
+
+Timeout:
+$response = http('https://api.example.com')
+    ->timeout(10)  # 10 seconds
+    ->get('/data');
+
+Response Methods:
+
+$response->ok()           # True if 2xx status
+$response->failed()       # True if not 2xx or error
+$response->status()       # HTTP status code (200, 404, etc.)
+$response->body()         # Raw response body
+$response->json()         # JSON decoded to array
+$response->object()       # JSON decoded to object
+
+Complete Example:
+
+$client = http('https://api.github.com')
+    ->header('User-Agent', 'Seed-Framework')
+    ->bearerToken('github-token')
+    ->timeout(30);
+
+$response = $client->get('/users/octocat');
+
+if ($response->ok()) {
+    $user = $response->json();
+    echo $user['name'];
+} else {
+    log_error('API request failed', [
+        'status' => $response->status(),
+        'error' => $response->error()
+    ]);
+}
+
+================================================================================
+13. Email
+================================================================================
+
+Sending Emails:
+
+Basic email:
+email()
+    ->to('user@example.com')
+    ->from('noreply@mysite.com')
+    ->subject('Welcome!')
+    ->body('Thank you for signing up')
+    ->send();
+
+HTML email:
+email()
+    ->to('user@example.com')
+    ->subject('Welcome!')
+    ->html('<h1>Welcome!</h1><p>Thank you for signing up</p>')
+    ->send();
+
+Multiple recipients:
+email()
+    ->to([
+        ['email' => 'user1@example.com', 'name' => 'User 1'],
+        ['email' => 'user2@example.com', 'name' => 'User 2']
+    ])
+    ->subject('Newsletter')
+    ->body('Content here')
+    ->send();
+
+With attachments:
+email()
+    ->to('user@example.com')
+    ->subject('Invoice')
+    ->body('Please find your invoice attached')
+    ->attach('/path/to/invoice.pdf')
+    ->attach('/path/to/receipt.pdf', 'Receipt.pdf')  # Custom filename
+    ->send();
+
+Using view for email body:
+$html = \Seed\Core\View::render('emails/welcome', ['user' => $user]);
+
+email()
+    ->to($user->email)
+    ->subject('Welcome!')
+    ->html($html)
+    ->send();
+
+DEFAULT FROM (from .env):
+MAIL_FROM_ADDRESS=noreply@example.com
+MAIL_FROM_NAME="My Application"
+
+================================================================================
+14. CLI Commands
+================================================================================
+
+Running CLI:
+
+./seed help                  # Show all commands
+./seed serve                 # Start development server (default port 8000)
+./seed serve 3000           # Start on specific port
+./seed routes               # List all routes
+./seed clear:cache          # Clear cache files
+./seed clear:sessions       # Clear session files
+./seed clear:logs           # Clear log files
+
+Custom Commands (app/commands.php):
+
+<?php
+# Register custom commands
+
+$cli->register('my-command', function($args) use ($cli) {
+    $cli->success('Command executed!');
+    
+    # Access arguments
+    $name = $args[0] ?? 'World';
+    $cli->info("Hello, {$name}!");
+    
+    # Ask for input
+    $email = $cli->ask('Enter your email:');
+    
+    # Confirm action
+    if ($cli->confirm('Are you sure?')) {
+        $cli->success('Confirmed!');
+    }
+    
+    # Output types
+    $cli->success('Success message');
+    $cli->error('Error message');
+    $cli->info('Info message');
+    $cli->warning('Warning message');
+    $cli->line('Regular line');
+    
+}, 'Description of my command');
+
+# Run your command
+# ./seed my-command argument1
+
+Example - Database Seed Command:
+
+$cli->register('db:seed', function($args) use ($cli) {
+    $cli->info('Seeding database...');
+    
+    try {
+        db()->loadSQL('app/sql/seed.sql');
+        $cli->success('Database seeded successfully!');
+    } catch (Exception $e) {
+        $cli->error('Seeding failed: ' . $e->getMessage());
+    }
+}, 'Seed the database with test data');
+
+================================================================================
+15. Helper Functions Reference
+================================================================================
+
+General Helpers:
+
+env($key, $default = null)
+    Get environment variable
+
+view($template, $data = [])
+    Render view template
+
+json($data, $status = 200)
+    Send JSON response
+
+redirect($url)
+    Redirect to URL
+
+redirect_back()
+    Redirect to previous page
+
+dd($data)
+    Dump and die (debugging)
+
+output($data)
+    Pretty print for debugging
+
+Security Helpers:
+
+esc($string, $context = 'html')
+    Escape output
+    Contexts: 'html', 'js', 'url'
+
+csrf_token()
+    Generate CSRF token
+
+csrf_field()
+    Output CSRF hidden field
+
+verify_csrf($token = null)
+    Verify CSRF token
+
+Form FORM & VALIDATION HELPERS: Validation Helpers:
+
+input_value($key, $default = '')
+    Get input value for form repopulation
+
+form_error($key)
+    Get validation error for field
+
+has_error($key)
+    Check if field has validation error
+
+show_error($key)
+    Display formatted error if exists
+
+validate($data, $rules)
+    Simple validation (returns boolean)
+
+validator($data, $rules, $messages = [])
+    Get validator object
+
+Session Helpers:
+
+session($key = null, $value = null)
+    Get or set session data
+
+session_remove($key)
+    Remove session key
+
+destroy_session()
+    Destroy entire session
+
+flash($key, $value)
+    Set flash message
+
+get_flash($key, $default = null)
+    Get flash message (auto-removes)
+
+has_flash($key)
+    Check if flash exists
+
+show_flash($key)
+    Display formatted flash message
+
+Database Helpers:
+
+db($driver = null)
+    Get database instance
+
+Auth Helpers:
+
+auth($callback = null)
+    Get current user (with optional callback)
+
+is_logged_in()
+    Check if user is authenticated
+
+user_id()
+    Get current user ID
+
+HTTP HTTP & EMAIL HELPERS: Email Helpers:
+
+http($baseUrl = '')
+    Create HTTP client instance
+
+email()
+    Create email instance
+
+Logging Helpers:
+
+log_info($message, $context = [])
+    Log info message
+
+log_error($message, $context = [])
+    Log error message
+
+log_debug($message, $context = [])
+    Log debug message
+
+================================================================================
+16. Configuration
+================================================================================
+
+Environment Configuration (.env):
+
+The .env file contains all configuration. Never commit this to git.
+
+Application:
+APP_ENV=development       # Environment: development, production
+APP_DEBUG=true           # Show detailed errors
+APP_URL=http://localhost # Base URL of application
+
+Database:
+DB_CONNECTION=mysql      # Database driver: mysql, pgsql
+DB_HOST=localhost        # Database host
+DB_PORT=3306            # Database port
+DB_DATABASE=seed        # Database name
+DB_USERNAME=root        # Database username
+DB_PASSWORD=            # Database password
+
+Session:
+SESSION_DRIVER=file     # Session driver (file-based only in v1.0)
+SESSION_LIFETIME=120    # Session lifetime in minutes
+
+Security:
+CSRF_ENABLED=true       # Enable CSRF protection
+
+Email:
+MAIL_HOST=localhost
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@example.com
+MAIL_FROM_NAME="Seed Framework"
+
+Custom Configuration:
+
+Add your own variables to .env:
+MY_API_KEY=abc123
+MY_SETTING=value
+
+Access in code:
+$apiKey = env('MY_API_KEY');
+
+PHP Configuration Files (optional):
+
+You can create PHP config files in app/config/ for complex configuration:
+
+app/config/services.php:
+<?php
+return [
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET')
+    ],
+    'aws' => [
+        'key' => env('AWS_KEY'),
+        'secret' => env('AWS_SECRET'),
+        'region' => 'us-east-1'
+    ]
+];
+
+Load and use:
+$config = require APP_PATH . '/config/services.php';
+$stripeKey = $config['stripe']['key'];
+
+================================================================================
+17. Error Handling & Logging
+================================================================================
+
+Error Modes:
+
+Development mode (.env):
+APP_ENV=development
+APP_DEBUG=true
+
+Shows detailed error pages with:
+- Exception message
+- File and line number
+- Full stack trace
+- Request details
+
+Production mode (.env):
+APP_ENV=production
+APP_DEBUG=false
+
+Shows generic error pages without sensitive details.
+
+Custom Error Pages:
+
+Override error pages by creating in app/views/errors/:
+- 404.php - Not found
+- 403.php - Forbidden
+- 500.php - Server error
+
+Example app/views/errors/404.php:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Page Not Found</title>
+</head>
+<body>
+    <h1>404 - Page Not Found</h1>
+    <p>The page you're looking for doesn't exist.</p>
+    <a href="/">Go Home</a>
+</body>
+</html>
+
+Throwing Errors:
+
+throw new Exception('Something went wrong');
+throw new Exception('User not found', 404);
+
+Logging:
+
+File-based logging to app/storage/logs/
+
+Log levels:
+log_info('User logged in', ['user_id' => 5]);
+log_error('Database connection failed', ['error' => $message]);
+log_debug('Query executed', ['sql' => $sql]);
+
+Log files:
+app/storage/logs/seed-2025-11-01.log
+
+Format:
+[2025-11-01 10:30:45] INFO: User logged in {"user_id":5}
+[2025-11-01 10:31:12] ERROR: Database connection failed {"error":"..."}
+
+Manual Logging:
+
+use Seed\Core\Logger;
+
+Logger::info('Message', ['context' => 'data']);
+Logger::error('Error occurred', ['exception' => $e->getMessage()]);
+Logger::debug('Debug info', ['data' => $data]);
+
+================================================================================
+18. Best Practices
+================================================================================
+
+Security:
+
+1. Always escape output:
+   <?= esc($userInput) ?>
+
+2. Always use prepared statements:
+   db()->query("SELECT * FROM users WHERE id = ?", [$id]);
+
+3. Enable CSRF protection for forms:
+   <?= csrf_field() ?>
+
+4. Validate all input:
+   validate($data, $rules);
+
+5. Hash passwords properly:
+   Auth::hashPassword($password);
+
+6. Use HTTPS in production:
+   APP_URL=https://yoursite.com
+
+Database:
+
+1. Use models for complex logic
+2. Use transactions for related operations
+3. Close database connections (automatic)
+4. Index frequently queried columns
+5. Use prepared statements always
+
+Performance:
+
+1. Enable opcode caching (OPcache) in production
+2. Use .env for configuration (cached by PHP)
+3. Minimize database queries
+4. Use database indexes
+5. Cache expensive operations
+
+Code Organization:
+
+1. Keep controllers thin (business logic in models)
+2. Use descriptive names (mixedCase for files)
+3. Group related routes
+4. Use middleware for common functionality
+5. Create custom helpers for repeated code
+
+Validation:
+
+1. Validate on server-side always (client-side is optional)
+2. Show clear error messages
+3. Repopulate form fields on error
+4. Use flash messages for feedback
+
+================================================================================
+19. Common Patterns
+================================================================================
+
+CRUD Operations:
+
+class userController extends Controller {
+    // List users
+    public function index() {
+        $users = db()->query("SELECT * FROM users");
+        view('users/index', ['users' => $users]);
+    }
+    
+    // Show create form
+    public function create() {
+        view('users/create');
+    }
+    
+    // Store new user
+    public function store() {
+        $rules = ['name' => 'required', 'email' => 'required|email'];
+        
+        if (!validate($this->request->post(), $rules)) {
+            return redirect_back();
+        }
+        
+        $id = db()->insert('users', $this->request->post());
+        
+        flash('success', 'User created!');
+        redirect('/users/' . $id);
+    }
+    
+    // Show single user
+    public function show($id) {
+        $user = db()->queryOne("SELECT * FROM users WHERE id = ?", [$id]);
+        view('users/show', ['user' => $user]);
+    }
+    
+    // Show edit form
+    public function edit($id) {
+        $user = db()->queryOne("SELECT * FROM users WHERE id = ?", [$id]);
+        view('users/edit', ['user' => $user]);
+    }
+    
+    // Update user
+    public function update($id) {
+        $rules = ['name' => 'required', 'email' => 'required|email'];
+        
+        if (!validate($this->request->post(), $rules)) {
+            return redirect_back();
+        }
+        
+        db()->update('users', $this->request->post(), ['id' => $id]);
+        
+        flash('success', 'User updated!');
+        redirect('/users/' . $id);
+    }
+    
+    // Delete user
+    public function destroy($id) {
+        db()->delete('users', ['id' => $id]);
+        
+        flash('success', 'User deleted!');
+        redirect('/users');
+    }
+}
+
+Routes for CRUD:
+
+$router->get('/users', 'userController/index');
+$router->get('/users/create', 'userController/create');
+$router->post('/users', 'userController/store');
+$router->get('/users/{id}', 'userController/show');
+$router->get('/users/{id}/edit', 'userController/edit');
+$router->put('/users/{id}', 'userController/update');
+$router->delete('/users/{id}', 'userController/destroy');
+
+API Endpoint:
+
+public function api() {
+    $users = db()->query("SELECT id, name, email FROM users");
+    
+    json([
+        'status' => 'success',
+        'data' => $users,
+        'count' => count($users)
+    ], 200);
+}
+
+API with Error Handling:
+
+public function api() {
+    try {
+        $id = $this->request->get('id');
+        
+        if (!$id) {
+            json(['status' => 'error', 'message' => 'ID required'], 400);
+        }
+        
+        $user = db()->queryOne("SELECT * FROM users WHERE id = ?", [$id]);
+        
+        if (!$user) {
+            json(['status' => 'error', 'message' => 'User not found'], 404);
+        }
+        
+        json(['status' => 'success', 'data' => $user], 200);
+        
+    } catch (Exception $e) {
+        log_error('API error', ['exception' => $e->getMessage()]);
+        json(['status' => 'error', 'message' => 'Internal error'], 500);
+    }
+}
+
+File Upload:
+
+public function upload() {
+    $file = $this->request->file('upload');
+    
+    if (!$file) {
+        flash('error', 'No file uploaded');
+        return redirect_back();
+    }
+    
+    $uploadDir = STORAGE_PATH . '/uploads/';
+    $filename = time() . '_' . $file['name'];
+    $destination = $uploadDir . $filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $destination)) {
+        flash('success', 'File uploaded successfully');
+        redirect('/files');
+    } else {
+        flash('error', 'Upload failed');
+        redirect_back();
+    }
+}
+
+AJAX/HTMX Response:
+
+public function loadMore() {
+    $page = $this->request->get('page', 1);
+    $users = db()->query("SELECT * FROM users LIMIT 10 OFFSET ?", [($page - 1) * 10]);
+    
+    # Return partial HTML for HTMX
+    view('users/partials/user-list', ['users' => $users]);
+}
+
+================================================================================
+20. Troubleshooting
+================================================================================
+
+Common Issues:
+
+1. "Page not found" for all routes
+   - Check .htaccess exists (Apache)
+   - Check nginx configuration
+   - Verify mod_rewrite enabled (Apache)
+   - Check app/routes.php syntax
+
+2. Database connection failed
+   - Verify .env database credentials
+   - Check database server is running
+   - Verify PDO extension installed
+   - Check database name exists
+
+3. Session not working
+   - Check app/storage/sessions/ is writable
+   - Verify sessions not started before framework loads
+   - Check SESSION_DRIVER in .env
+
+4. CSRF token mismatch
+   - Ensure <?= csrf_field() ?> in form
+   - Check CSRF_ENABLED in .env
+   - Verify session is working
+   - Check form method is POST/PUT/DELETE/PATCH
+
+5. Views not found
+   - Check file path matches view() call
+   - Verify file extension is .php
+   - Check app/views/ directory exists
+   - File paths are case-sensitive on Linux
+
+6. Class not found errors
+   - Run: composer dump-autoload
+   - Check namespace matches directory structure
+   - Verify class name matches filename
+
+7. Validation not working
+   - Check rules syntax (pipe-separated)
+   - Verify data array structure
+   - Check sessions are working (errors stored in session)
+
+8. Middleware not executing
+   - Verify middleware registered correctly
+   - Check middleware class extends Middleware
+   - Ensure handle() method returns $next($request)
+
+Debugging:
+
+Enable debug mode:
+APP_DEBUG=true
+
+Use debugging helpers:
+dd($variable);           # Dump and die
+output($variable);       # Pretty print
+
+Check logs:
+app/storage/logs/seed-YYYY-MM-DD.log
+
+Enable PHP errors (development only):
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+Permissions:
+
+Ensure writable directories:
+chmod -R 755 app/storage
+chmod -R 755 app/storage/logs
+chmod -R 755 app/storage/sessions
+chmod -R 755 app/storage/cache
+chmod -R 755 app/storage/uploads
+
+================================================================================
+End of Guide
+================================================================================
+
+This guide covers all major features of Seed Framework v1.0.
+
+For examples and sample code, see:
+- docs/examples/ folder
+- GitHub: https://github.com/iQ-Global/seed
+
+For questions or issues:
+- Check dev-docs/ for architectural decisions
+- Review CHANGELOG.md for version history
+- Open an issue on GitHub
+
+Happy coding with Seed! 🌱
+

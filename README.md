@@ -56,11 +56,11 @@ Simple, clear, and powerful.
 
 ## Installation
 
-**Note:** Seed is currently in the planning phase. Installation instructions will be available once v1.0 is released.
+Seed is feature-complete and ready to use! Follow these steps to get started:
 
 ```bash
 # Future installation (once released)
-git clone https://github.com/iQ/seed.git myproject
+git clone https://github.com/iQ-Global/seed.git myproject
 cd myproject
 composer install
 cp .env.example .env
@@ -138,27 +138,33 @@ session('user_id')        // Get
 
 ## Current Status
 
-**Phase:** Planning & Design ✅ **Complete**  
-**Next:** Implementation 🚀 **Ready to start**
+**Phase:** 🎉 **v1.0.0 RELEASED!**  
+**Status:** ✅ Production Ready
 
-### What's Ready
-- Complete framework specification
-- All architectural decisions made (18 major decisions)
-- Coding conventions established
-- Helper function API defined
-- Directory structure finalized
+### What's Included
+- Complete framework core (~3,500 lines of code)
+- 27 core classes fully implemented and tested
+- 40+ helper functions
+- 23 automated tests (all passing)
+- Complete documentation (text + HTML)
+- Example application
+- CLI tools
+- All security features working
 
-### Roadmap
+### Roadmap (v1.1+)
 
-**v1.0 - Core Framework** (Target: 8 weeks)
-- Router with middleware
-- Request/Response objects
-- MVC structure
-- Security features
-- Helper functions
-- CLI support
+**v1.0 - Core Framework** ✅ **RELEASED!**
+- ✅ Router with middleware
+- ✅ Request/Response objects
+- ✅ MVC structure
+- ✅ Security features (CSRF, XSS, rate limiting)
+- ✅ Database (MySQL & PostgreSQL)
+- ✅ Authentication & Validation
+- ✅ HTTP Client & Email
+- ✅ Helper functions (40+)
+- ✅ CLI support
 
-**v1.1 - Essential Modules**
+**v1.1 - Enhancements** (Future)
 - Database (MySQL, PostgreSQL)
 - Authentication
 - .env support
@@ -176,25 +182,21 @@ session('user_id')        // Get
 
 ## Documentation
 
-📚 **Complete documentation is in the [`/docs`](/docs) directory:**
+📚 **Complete documentation for using Seed Framework:**
 
-### Quick Start
-- **[Description](docs/description.md)** - Complete framework specification with all features
-- **[Conventions](docs/conventions.md)** - Coding standards and best practices (starts with design philosophy)
-- **[Decisions](docs/decisions.md)** - All 18 architectural decisions with rationale
+### User Documentation
+- **[📖 HTML Documentation](docs/html/index.html)** - Beautiful, searchable docs (open in browser)
+- **[📄 Complete Guide](docs/text/seed-framework-complete-guide.txt)** - Text guide for AI context
+- **[⚡ Quick Reference](docs/context/quick-reference.md)** - Essential commands & code snippets
+- **[💡 Examples](docs/examples/)** - Configuration files (nginx.conf, .htaccess)
+- **[📚 Documentation Guide](docs/README.md)** - Which documentation to use when
 
-### Reference
-- **[Framework Comparison](docs/framework-comparison.md)** - How Seed compares to Laravel, Symfony, CI3, etc.
-
-### For New Developers
-Start here:
-1. This README (you are here!)
-2. [Description](docs/description.md) - Full framework specification
-3. [Conventions](docs/conventions.md) - How to write Seed code
-
-### For Understanding Design
-4. [Decisions](docs/decisions.md) - Why things are the way they are
-5. [Framework Comparison](docs/framework-comparison.md) - Seed's positioning
+### Development Documentation
+For framework development and architectural decisions:
+- **[Conventions](dev-docs/conventions.md)** - Coding standards and design philosophy
+- **[Decisions](dev-docs/decisions.md)** - All 18 architectural decisions with rationale
+- **[Framework Comparison](dev-docs/framework-comparison.md)** - vs Laravel, Symfony, CI3, etc.
+- **[Complete TODO](dev-docs/todo.md)** - Full implementation plan and progress
 
 ---
 
@@ -240,6 +242,6 @@ You can:
 
 ---
 
-**Status:** Planning Complete | Ready for Implementation  
-**Version:** Planning Documentation v1.0  
-**Date:** October 31, 2025
+**Status:** 🎉 v1.0.0 Released!  
+**Version:** 1.0.0  
+**Date:** November 1, 2025

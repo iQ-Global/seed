@@ -1,0 +1,178 @@
+# Changelog
+
+All notable changes to Seed Framework will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2025-11-01
+
+### Initial Release 🎉
+
+Seed Framework v1.0.0 - A minimal PHP framework that helps you grow without taking over.
+
+### Added
+
+#### Core Framework (Phase 1)
+- **Router** with full HTTP method support (GET, POST, PUT, DELETE, PATCH)
+- **Middleware system** with route-specific and grouped middleware
+- **Route parameters** support (e.g., `/user/{id}`)
+- **Route groups** with prefixes and middleware
+- **Request & Response** objects with clean API
+- **MVC structure** with base Controller, Model, and View classes
+- **View rendering** with fallback support (app views override system views)
+- **Beautiful URLs** via `.htaccess` (Apache) and nginx configuration
+- **PSR-4 autoloading** via Composer
+
+#### Security & Error Handling (Phase 2)
+- **Error Handler** with development and production modes
+- **Logger** with file-based logging (info, error, debug levels)
+- **CSRF protection** with token generation and validation
+- **XSS prevention** with output escaping helpers
+- **Rate limiting** middleware (60 requests/minute default)
+- **Session management** with file-based driver
+- **Flash messages** for one-time user notifications
+- **Custom error pages** (404, 403, 500, debug mode)
+
+#### Essential Modules (Phase 3)
+- **Database module** with MySQL and PostgreSQL drivers
+  - PDO-based connections
+  - Prepared statements (query, insert, update, delete)
+  - Transaction support
+  - Bulk operations
+  - SQL file loading
+  - Connection pooling via DatabaseManager
+- **Authentication module** with session-based auth
+  - Password hashing (bcrypt)
+  - Login/logout functionality
+  - Auth middleware
+- **Validation system** with 10+ built-in rules
+  - required, email, numeric, min/max, alpha, alphanumeric, url, etc.
+  - Custom error messages
+  - Session-based error storage
+  - Form repopulation helpers
+
+#### Extended Features (Phase 4)
+- **HTTP Client** for external API calls
+  - cURL-based with full HTTP method support
+  - Authentication (API-Key, Basic Auth, Bearer Token)
+  - JSON and form data support
+  - Response wrapper with helper methods
+- **Email module** for sending emails
+  - HTML email support
+  - Attachments
+  - Fluent API
+- **CLI support** with command-line interface
+  - Built-in commands: serve, routes, clear:cache, clear:sessions, clear:logs
+  - Custom command registration
+  - Color output support
+  - User prompts (ask, confirm)
+
+#### Helper Functions
+**General:**
+- `env()` - Get environment variables
+- `view()` - Render views
+- `json()` - JSON responses
+- `redirect()` - Redirects
+- `dd()` - Dump and die
+- `output()` - Debug output
+
+**Security:**
+- `esc()` - Escape output (HTML, JS, URL)
+- `csrf_token()` - Generate CSRF token
+- `csrf_field()` - Output CSRF field
+- `verify_csrf()` - Verify CSRF token
+
+**Forms:**
+- `input_value()` - Repopulate form fields
+- `form_error()` - Get validation error
+- `has_error()` - Check for errors
+- `show_error()` - Display formatted error
+
+**Session:**
+- `session()` - Session data management
+- `flash()` - Flash messages
+- `has_flash()` - Check flash existence
+- `show_flash()` - Display flash messages
+- `destroy_session()` - Destroy session
+
+**Database:**
+- `db()` - Get database instance
+
+**Authentication:**
+- `auth()` - Get current user
+- `is_logged_in()` - Check authentication
+- `user_id()` - Get user ID
+
+**Validation:**
+- `validate()` - Simple validation
+- `validator()` - Get validator instance
+
+**HTTP:**
+- `http()` - Create HTTP client
+
+**Email:**
+- `email()` - Create email instance
+
+**Logging:**
+- `log_info()` - Log info message
+- `log_error()` - Log error message
+- `log_debug()` - Log debug message
+
+#### Middleware
+- `CsrfMiddleware` - CSRF token validation
+- `RateLimitMiddleware` - Rate limiting
+- `AuthMiddleware` - Authentication requirement
+
+#### Documentation
+- Comprehensive framework description
+- Coding conventions guide
+- Architectural decisions document
+- Framework comparison (vs Laravel, Symfony, CI3, Slim)
+- Installation and quick start guide
+- Example application with working routes
+
+#### Development Tools
+- Executable CLI runner (`./seed`)
+- Test suite (`test.php`) with 23 automated tests
+- Example controllers, models, and views
+- `.env.example` with all configuration options
+
+### Philosophy
+
+Seed Framework follows these core principles:
+- **Minimal but capable** - Only what you need, nothing you don't
+- **Easy to learn** - Simple concepts, clear patterns
+- **Developer freedom** - Opinionated where it helps, flexible where it matters
+- **Modern yet accessible** - Works with PHP 7.0+
+- **AI-friendly** - Clean, well-documented code perfect for AI-assisted development
+
+### Requirements
+
+- PHP 7.0 or higher
+- Composer
+- Apache (with mod_rewrite) or Nginx
+- PDO extension (for database features)
+- cURL extension (for HTTP client)
+
+### Notes
+
+This is the first stable release of Seed Framework. All core features are implemented, tested, and ready for production use.
+
+---
+
+## [Unreleased]
+
+### Planned for v1.1+
+- SMTP email support (PHPMailer integration)
+- Event system
+- Storage abstraction
+- MongoDB driver
+- Additional validation rules
+- More CLI commands
+- Community-driven features
+
+---
+
+[1.0.0]: https://github.com/iQ-Global/seed/releases/tag/v1.0.0
+

@@ -1,0 +1,135 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Seed CLI - Command line interface
+ */
+
+// Load Composer autoloader
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Load environment
+$envFile = __DIR__ . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        
+        if (!array_key_exists($name, $_ENV)) {
+            $_ENV[$name] = $value;
+            putenv("$name=$value");
+        }
+    }
+}
+
+// Create CLI instance
+$cli = new \Seed\Core\CLI();
+
+// Register built-in commands
+$cli->register('serve', function($args) use ($cli) {
+    $port = $args[0] ?? 8000;
+    $cli->info("Starting development server on http://localhost:{$port}");
+    $cli->line("Press Ctrl+C to stop.");
+    $cli->line("");
+    
+    passthru("php -S localhost:{$port} -t " . __DIR__);
+}, 'Start development server');
+
+$cli->register('routes', function($args) use ($cli) {
+    $cli->info("Application Routes:");
+    $cli->line("");
+    
+    // Load routes
+    $routesFile = __DIR__ . '/app/routes.php';
+    if (!file_exists($routesFile)) {
+        $cli->error("Routes file not found.");
+        return;
+    }
+    
+    $cli->warning("Note: This is a basic display. Full route inspection coming soon.");
+    $cli->line("");
+}, 'List all registered routes');
+
+$cli->register('clear:cache', function($args) use ($cli) {
+    $cachePath = __DIR__ . '/app/storage/cache';
+    
+    if (!is_dir($cachePath)) {
+        $cli->warning("Cache directory doesn't exist.");
+        return;
+    }
+    
+    // Clear cache files
+    $files = glob($cachePath . '/*');
+    $count = 0;
+    
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+            $count++;
+        }
+    }
+    
+    $cli->success("Cache cleared! ({$count} files deleted)");
+}, 'Clear cache files');
+
+$cli->register('clear:sessions', function($args) use ($cli) {
+    $sessionPath = __DIR__ . '/app/storage/sessions';
+    
+    if (!is_dir($sessionPath)) {
+        $cli->warning("Session directory doesn't exist.");
+        return;
+    }
+    
+    // Clear session files
+    $files = glob($sessionPath . '/*');
+    $count = 0;
+    
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+            $count++;
+        }
+    }
+    
+    $cli->success("Sessions cleared! ({$count} files deleted)");
+}, 'Clear session files');
+
+$cli->register('clear:logs', function($args) use ($cli) {
+    if (!$cli->confirm("Are you sure you want to delete all log files?")) {
+        $cli->info("Operation cancelled.");
+        return;
+    }
+    
+    $logPath = __DIR__ . '/app/storage/logs';
+    
+    if (!is_dir($logPath)) {
+        $cli->warning("Log directory doesn't exist.");
+        return;
+    }
+    
+    // Clear log files
+    $files = glob($logPath . '/*');
+    $count = 0;
+    
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+            $count++;
+        }
+    }
+    
+    $cli->success("Logs cleared! ({$count} files deleted)");
+}, 'Clear log files');
+
+// Load user commands (if exists)
+$userCommands = __DIR__ . '/app/commands.php';
+if (file_exists($userCommands)) {
+    require_once $userCommands;
+}
+
+// Run CLI
+$cli->run($argv);
+

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed Framework Documentation</title>
+    <meta name="description" content="Complete documentation for Seed Framework - A minimal PHP framework that helps you grow without taking over.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind config for dark mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Custom styles -->
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-link:hover {
+            transform: translateX(4px);
+        }
+        
+        .sidebar-link.active {
+            @apply bg-blue-600 text-white;
+        }
+        
+        .dark .sidebar-link.active {
+            @apply bg-blue-500;
+        }
+        
+        pre {
+            @apply bg-slate-800 dark:bg-slate-900 rounded-lg p-4 overflow-x-auto;
+        }
+        
+        pre code {
+            @apply text-slate-100 text-sm font-mono;
+        }
+        
+        code {
+            @apply text-sm font-mono;
+        }
+        
+        /* Inline code in text */
+        p code, li code, td code {
+            @apply bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-900 dark:text-gray-100;
+        }
+        
+        .search-highlight {
+            @apply bg-yellow-200 dark:bg-yellow-600 px-1;
+        }
+        
+        h2, h3 {
+            scroll-margin-top: 100px;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            @apply bg-gray-100 dark:bg-gray-800;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            @apply bg-gray-300 dark:bg-gray-600 rounded;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            @apply bg-gray-400 dark:bg-gray-500;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors" x-data="docApp()" x-init="init()">
+    
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-40 transition-colors">
+        <div class="flex items-center justify-between px-4 py-4">
+            <!-- Logo (over sidebar) -->
+            <div class="w-64 flex items-center space-x-2">
+                <h1 class="text-xl font-bold text-blue-600 dark:text-blue-400">🌱 Seed Framework</h1>
+                <span class="text-xs text-gray-500 dark:text-gray-400">v1.0.0</span>
+            </div>
+            
+            <!-- Right side (search + controls) -->
+            <div class="flex-1 flex items-center justify-between">
+                <!-- Search -->
+                <div class="flex-1 max-w-md mx-8">
+                    <input 
+                        type="text" 
+                        x-model="searchQuery" 
+                        @input="performSearch()"
+                        placeholder="Search documentation..."
+                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    >
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Dark mode toggle -->
+                    <button 
+                        @click="toggleDarkMode()" 
+                        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                        title="Toggle dark mode"
+                    >
+                        <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                        <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </button>
+                    
+                    <a href="https://github.com/iQ-Global/seed" target="_blank" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <button 
+                        @click="toggleSidebar()" 
+                        class="lg:hidden text-gray-600 dark:text-gray-300 hover:text-blue-600"
+                    >
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main container -->
+    <div class="flex pt-16 h-full">
+        
+        <!-- Sidebar -->
+        <aside 
+            class="fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-all duration-300 z-30"
+            :class="{ '-translate-x-full lg:translate-x-0': !sidebarOpen }"
+        >
+            <nav class="p-4 space-y-1">
+                <template x-for="section in navigation" :key="section.id">
+                    <div>
+                        <a 
+                            :href="'#' + section.id" 
+                            @click="setActive(section.id); closeSidebarOnMobile()"
+                            class="sidebar-link block px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            :class="{ 'active': activeSection === section.id }"
+                            x-text="section.title"
+                        ></a>
+                        
+                        <template x-if="section.subsections">
+                            <div class="ml-4 mt-1 space-y-1">
+                                <template x-for="sub in section.subsections" :key="sub.id">
+                                    <a 
+                                        :href="'#' + sub.id" 
+                                        @click="setActive(sub.id); closeSidebarOnMobile()"
+                                        class="sidebar-link block px-4 py-1.5 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        :class="{ 'active': activeSection === sub.id }"
+                                        x-text="sub.title"
+                                    ></a>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </nav>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="flex-1 lg:ml-64 overflow-y-auto">
+            <div class="max-w-4xl mx-auto px-6 py-8">
+                
+                <!-- Search Results -->
+                <div x-show="searchQuery && searchResults.length > 0" x-cloak class="mb-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+                        Search Results (<span x-text="searchResults.length"></span>)
+                    </h3>
+                    <div class="space-y-2">
+                        <template x-for="result in searchResults" :key="result.id">
+                            <a 
+                                :href="'#' + result.id" 
+                                @click="searchQuery = ''; setActive(result.id)"
+                                class="block px-4 py-2 bg-white dark:bg-gray-800 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900/40 border border-yellow-300 dark:border-yellow-700"
+                            >
+                                <div class="font-medium text-blue-600 dark:text-blue-400" x-text="result.title"></div>
+                                <div class="text-sm text-gray-600 dark:text-gray-300" x-html="result.snippet"></div>
+                            </a>
+                        </template>
+                    </div>
+                </div>
+                
+                <div x-show="searchQuery && searchResults.length === 0" x-cloak class="mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-6 text-center">
+                    <p class="text-gray-600 dark:text-gray-300">No results found for "<span x-text="searchQuery"></span>"</p>
+                </div>
+                
+                <!-- Hero Section -->
+                <section id="intro" class="mb-12 text-center py-12">
+                    <h1 class="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">🌱 Seed Framework</h1>
+                    <p class="text-2xl text-gray-600 dark:text-gray-300 mb-6">A minimal PHP framework that helps you grow without taking over</p>
+                    <p class="text-lg text-gray-500 dark:text-gray-400 mb-8">Version 1.0.0 • MIT License • By iQ</p>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <a href="#quick-start" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Get Started</a>
+                        <a href="https://github.com/iQ-Global/seed" target="_blank" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600">GitHub</a>
+                    </div>
+                    
+                    <div class="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">~3,500</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Lines of Code</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">40+</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Helper Functions</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">PHP 7.0+</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Compatible</div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Zero</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Bloat</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Overview -->
+                <section id="overview" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Overview</h2>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                            Seed is a minimal PHP framework designed for simplicity and developer freedom. It provides just enough structure to build robust applications without imposing unnecessary complexity.
+                        </p>
+                        
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Core Philosophy</h3>
+                        <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                            <li><strong class="text-blue-600 dark:text-blue-400">Minimal but capable:</strong> Only what you need, nothing you don't</li>
+                            <li><strong class="text-blue-600 dark:text-blue-400">Easy to learn:</strong> Simple concepts, clear patterns</li>
+                            <li><strong class="text-blue-600 dark:text-blue-400">Developer freedom:</strong> Opinionated where it helps, flexible where it matters</li>
+                            <li><strong class="text-blue-600 dark:text-blue-400">Modern yet accessible:</strong> Works with PHP 7.0+ and modern development practices</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Key Features</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                <h4 class="font-bold text-blue-900 dark:text-blue-300 mb-2">🎯 Routing & Middleware</h4>
+                                <p class="text-sm text-blue-800 dark:text-blue-200">Flexible routing with parameter support and middleware chains</p>
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                <h4 class="font-bold text-blue-900 dark:text-blue-300 mb-2">🛡️ Security Built-in</h4>
+                                <p class="text-sm text-blue-800 dark:text-blue-200">CSRF, XSS protection, rate limiting, and password hashing</p>
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                <h4 class="font-bold text-blue-900 dark:text-blue-300 mb-2">💾 Database Support</h4>
+                                <p class="text-sm text-blue-800 dark:text-blue-200">MySQL & PostgreSQL with prepared statements, no ORM bloat</p>
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                <h4 class="font-bold text-blue-900 dark:text-blue-300 mb-2">✅ Validation</h4>
+                                <p class="text-sm text-blue-800 dark:text-blue-200">Simple, powerful validation with clean error handling</p>
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                <h4 class="font-bold text-blue-900 dark:text-blue-300 mb-2">🔐 Authentication</h4>
+                                <p class="text-sm text-blue-800 dark:text-blue-200">Session-based auth with password hashing</p>
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                <h4 class="font-bold text-blue-900 dark:text-blue-300 mb-2">📧 Email & HTTP</h4>
+                                <p class="text-sm text-blue-800 dark:text-blue-200">Send emails and make API requests easily</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Start -->
+                <section id="quick-start" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🚀 Quick Start</h2>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Installation</h3>
+                        <pre class="language-bash bg-slate-800 dark:bg-slate-900"><code class="text-slate-100">git clone https://github.com/iQ-Global/seed.git myproject
+cd myproject
+composer install
+cp .env.example .env
+./seed serve</code></pre>
+                        <p class="text-gray-600 dark:text-gray-300 mt-4">Visit <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-900 dark:text-gray-100">http://localhost:8000</code></p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Your First Route</h3>
+                        
+                        <p class="text-gray-700 dark:text-gray-300 mb-4"><strong>1. Define route</strong> in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/routes.php</code>:</p>
+                        <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+$router->get('/hello/{name}', 'helloController/greet');</code></pre>
+
+                        <p class="text-gray-700 dark:text-gray-300 mb-4"><strong>2. Create controller</strong> in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/controllers/helloController.php</code>:</p>
+                        <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+namespace App\Controllers;
+use Seed\Core\Controller;
+
+class helloController extends Controller {
+    public function greet($name) {
+        view('hello', ['name' => $name]);
+    }
+}</code></pre>
+
+                        <p class="text-gray-700 dark:text-gray-300 mb-4"><strong>3. Create view</strong> in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/views/hello.php</code>:</p>
+                        <pre class="language-php mb-4"><code class="text-slate-100">&lt;h1>Hello, &lt;?= esc($name) ?>!&lt;/h1></code></pre>
+                        
+                        <p class="text-green-600 dark:text-green-400 font-medium">That's it! Simple, clean, powerful.</p>
+                    </div>
+                </section>
+
+                <!-- Routing -->
+                <section id="routing" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🎯 Routing</h2>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                        <h3 id="routing-basics" class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Basic Routes</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">Define routes in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/routes.php</code> using <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">controller/function</code> syntax:</p>
+                        
+                        <pre class="language-php"><code class="text-slate-100">&lt;?php
+// Basic routes
+$router->get('/', 'homeController/index');
+$router->post('/users', 'userController/store');
+$router->put('/users/{id}', 'userController/update');
+$router->delete('/users/{id}', 'userController/destroy');
+$router->patch('/users/{id}', 'userController/patch');</code></pre>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                        <h3 id="routing-parameters" class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Route Parameters</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Use curly braces for dynamic segments:</p>
+                    
+                    <pre class="language-php mb-4"><code class="text-slate-100">&lt;?php
+$router->get('/user/{id}', 'userController/show');
+$router->get('/posts/{postId}/comments/{commentId}', 'postController/showComment');</code></pre>
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Parameters are passed to your controller method:</p>
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+public function show($id) {
+    // $id contains the value from the URL
+}</code></pre>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                        <h3 id="routing-middleware" class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Middleware</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Apply middleware to routes for authentication, CSRF protection, etc.:</p>
+                    
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+// Single middleware
+$router->post('/profile', 'userController/update')
+    ->middleware('auth');
+
+// Multiple middleware
+$router->post('/admin/users', 'adminController/createUser')
+    ->middleware(['auth', 'csrf']);</code></pre>
+
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
+                            <p class="text-sm text-blue-900 dark:text-blue-200"><strong>Built-in Middleware:</strong> <code class="bg-white dark:bg-gray-800 px-2 py-1 rounded">csrf</code>, <code class="bg-white dark:bg-gray-800 px-2 py-1 rounded">auth</code>, <code class="bg-white dark:bg-gray-800 px-2 py-1 rounded">rate_limit</code></p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                        <h3 id="routing-groups" class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Route Groups</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Group routes with common middleware or prefixes:</p>
+                    
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+// Group with middleware
+$router->group(['middleware' => 'auth'], function($r) {
+    $r->get('/dashboard', 'dashboardController/index');
+    $r->get('/profile', 'userController/profile');
+});
+
+// Group with prefix
+$router->group(['prefix' => 'api'], function($r) {
+    $r->get('/users', 'apiController/users');
+    $r->get('/posts', 'apiController/posts');
+});
+
+// Combine prefix and middleware
+$router->group(['prefix' => 'admin', 'middleware' => 'auth'], function($r) {
+    $r->get('/dashboard', 'adminController/dashboard');
+    $r->get('/users', 'adminController/users');
+});</code></pre>
+                    </div>
+                </section>
+
+                <!-- Controllers & Models -->
+                <section id="controllers" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🎮 Controllers & Models</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <h3 id="controllers-basics" class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Controllers</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Controllers handle HTTP requests. Create in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/controllers/</code>:</p>
+                    
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+namespace App\Controllers;
+use Seed\Core\Controller;
+
+class userController extends Controller {
+    // Show all users
+    public function index() {
+        $users = db()->query("SELECT * FROM users");
+        view('users/index', ['users' => $users]);
+    }
+    
+    // Show single user
+    public function show($id) {
+        $user = db()->queryOne("SELECT * FROM users WHERE id = ?", [$id]);
+        
+        if (!$user) {
+            return $this->response->notFound();
+        }
+        
+        view('users/show', ['user' => $user]);
+    }
+    
+    // Create user
+    public function store() {
+        // Validate input
+        $rules = [
+            'name' => 'required|min:3',
+            'email' => 'required|email'
+        ];
+        
+        if (!validate($this->request->post(), $rules)) {
+            flash('error', 'Validation failed');
+            return redirect_back();
+        }
+        
+        // Save to database
+        $id = db()->insert('users', $this->request->post());
+        
+        flash('success', 'User created!');
+        redirect('/users/' . $id);
+    }
+}</code></pre>
+
+                    <h3 id="models-basics" class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Models</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Models handle data and database logic. Create in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/models/</code>:</p>
+                    
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php
+namespace App\Models;
+use Seed\Core\Model;
+
+class userModel extends Model {
+    protected $table = 'users';
+    
+    // Get all active users
+    public function getActive() {
+        return $this->query("SELECT * FROM {$this->table} WHERE status = ?", ['active']);
+    }
+    
+    // Get user by ID
+    public function find($id) {
+        $result = $this->query("SELECT * FROM {$this->table} WHERE id = ?", [$id]);
+        return $result[0] ?? null;
+    }
+    
+    // Create user
+    public function create($data) {
+        return $this->insert($data);
+    }
+}</code></pre>
+
+                    <p class="text-gray-700 dark:text-gray-300 mb-4 mt-6">Use models in controllers:</p>
+                    <pre class="language-php mb-6"><code class="text-slate-100">$model = new \App\Models\userModel();
+$users = $model->getActive();</code></pre>
+                    </div>
+                </section>
+
+                <!-- Views -->
+                <section id="views" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">👁️ Views & Templates</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Seed uses native PHP templates - no complex syntax to learn!</p>
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Basic View</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Create in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/views/</code>:</p>
+                    
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+    &lt;title>&lt;?= esc($title) ?>&lt;/title>
+&lt;/head>
+&lt;body>
+    &lt;h1>&lt;?= esc($heading) ?>&lt;/h1>
+    &lt;p>&lt;?= esc($message) ?>&lt;/p>
+&lt;/body>
+&lt;/html></code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Rendering Views</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">view('home', ['title' => 'Welcome', 'heading' => 'Hello!']);</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Partial Views</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Include headers, footers, and reusable components:</p>
+                    
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;?php include 'partials/header.php'; ?>
+
+&lt;main>
+    &lt;h1>&lt;?= esc($title) ?>&lt;/h1>
+&lt;/main>
+
+&lt;?php include 'partials/footer.php'; ?></code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">View Helpers</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">esc($value)</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Escape HTML</p>
+                        </div>
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">csrf_field()</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">CSRF token</p>
+                        </div>
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">input_value('name')</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Form repopulation</p>
+                        </div>
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">show_error('name')</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Show validation error</p>
+                        </div>
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">show_flash('success')</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Display flash message</p>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <!-- Database -->
+                <section id="database" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">💾 Database</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Seed supports MySQL and PostgreSQL with clean PDO-based drivers.</p>
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Configuration</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Configure in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">.env</code>:</p>
+                    
+                    <pre class="language-bash mb-6"><code class="text-slate-100">DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=seed
+DB_USERNAME=root
+DB_PASSWORD=</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Query Methods</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-gray-100 mb-2">Query (returns array of objects):</p>
+                            <pre class="language-php"><code class="text-slate-100">$users = db()->query("SELECT * FROM users WHERE status = ?", ['active']);
+
+foreach ($users as $user) {
+    echo $user->name;
+}</code></pre>
+                        </div>
+                        
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-gray-100 mb-2">Query One (returns single object):</p>
+                            <pre class="language-php"><code class="text-slate-100">$user = db()->queryOne("SELECT * FROM users WHERE id = ?", [1]);</code></pre>
+                        </div>
+                        
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-gray-100 mb-2">Insert (returns ID):</p>
+                            <pre class="language-php"><code class="text-slate-100">$id = db()->insert('users', [
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+    'status' => 'active'
+]);</code></pre>
+                        </div>
+                        
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-gray-100 mb-2">Update (returns affected rows):</p>
+                            <pre class="language-php"><code class="text-slate-100">$affected = db()->update('users', 
+    ['status' => 'inactive'],
+    ['id' => 5]
+);</code></pre>
+                        </div>
+                        
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-gray-100 mb-2">Delete (returns affected rows):</p>
+                            <pre class="language-php"><code class="text-slate-100">$affected = db()->delete('users', ['id' => 5]);</code></pre>
+                        </div>
+                        
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-gray-100 mb-2">Transactions:</p>
+                            <pre class="language-php"><code class="text-slate-100">db()->beginTransaction();
+
+try {
+    db()->insert('users', $userData);
+    db()->insert('profiles', $profileData);
+    db()->commit();
+} catch (Exception $e) {
+    db()->rollback();
+    throw $e;
+}</code></pre>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <!-- Validation -->
+                <section id="validation" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">✅ Validation</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Simple, powerful input validation with clean error handling:</p>
+                    
+                    <pre class="language-php mb-6"><code class="text-slate-100">$rules = [
+    'name' => 'required|min:3|max:50',
+    'email' => 'required|email',
+    'age' => 'required|numeric|min:18',
+    'username' => 'required|alpha_num|min:4'
+];
+
+if (!validate($this->request->post(), $rules)) {
+    // Validation failed - errors automatically available in views
+    return redirect_back();
+}
+
+// Validation passed - continue processing</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Available Rules</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">required</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Field must be present and not empty</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">email</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Must be valid email address</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">numeric</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Must be numeric value</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">alpha</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Letters only</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">alpha_num</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Letters and numbers only</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">url</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Must be valid URL</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">min:X</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Minimum length/value</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="text-blue-600 dark:text-blue-400">max:X</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Maximum length/value</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Displaying Errors in Views</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;form method="POST">
+    &lt;?= csrf_field() ?>
+    
+    &lt;input type="text" name="email" value="&lt;?= input_value('email') ?>">
+    &lt;?= show_error('email') ?>
+    
+    &lt;button>Submit&lt;/button>
+&lt;/form></code></pre>
+                    </div>
+                </section>
+
+                <!-- Security -->
+                <section id="security" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🛡️ Security</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">Seed has multiple security features built-in:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">CSRF Protection</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-3">Protect against cross-site request forgery:</p>
+                            <pre class="language-php text-sm"><code class="text-slate-100">&lt;form method="POST">
+    &lt;?= csrf_field() ?>
+&lt;/form></code></pre>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">XSS Prevention</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-3">Always escape output:</p>
+                            <pre class="language-php text-sm"><code class="text-slate-100">&lt;?= esc($userInput) ?>
+&lt;?= esc($value, 'js') ?>
+&lt;?= esc($value, 'url') ?></code></pre>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">SQL Injection</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-3">Use prepared statements:</p>
+                            <pre class="language-php text-sm"><code class="text-slate-100">db()->query(
+  "SELECT * FROM users WHERE id = ?",
+  [$id]
+);</code></pre>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Rate Limiting</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-3">Protect endpoints:</p>
+                            <pre class="language-php text-sm"><code class="text-slate-100">$router->post('/login', 'auth/login')
+  ->middleware('rate_limit');</code></pre>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <!-- Authentication -->
+                <section id="authentication" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🔐 Authentication</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">Session-based authentication with password hashing.</p>
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Login Example</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">use Seed\Modules\Auth\Auth;
+
+public function login() {
+    $email = $this->request->post('email');
+    $password = $this->request->post('password');
+    
+    // Find user
+    $user = db()->queryOne("SELECT * FROM users WHERE email = ?", [$email]);
+    
+    // Verify password
+    if ($user && Auth::verifyPassword($password, $user->password)) {
+        Auth::login($user->id);
+        flash('success', 'Logged in successfully!');
+        redirect('/dashboard');
+    }
+    
+    flash('error', 'Invalid credentials');
+    redirect_back();
+}</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Logout</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">public function logout() {
+    Auth::logout();
+    flash('success', 'Logged out');
+    redirect('/');
+}</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Check Authentication</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">// Using helper
+if (is_logged_in()) {
+    $userId = user_id();
+}
+
+// Using Auth class
+if (Auth::check()) {
+    $userId = Auth::id();
+}</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Protect Routes</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">$router->get('/dashboard', 'dashboardController/index')
+    ->middleware('auth');</code></pre>
+                    </div>
+                </section>
+
+                <!-- Sessions -->
+                <section id="sessions" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">💬 Sessions & Flash Messages</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Session Management</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">// Get session value
+$value = session('key');
+
+// Set session value
+session('key', 'value');
+
+// Remove session key
+session_remove('key');
+
+// Destroy session
+destroy_session();</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Flash Messages</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">One-time messages that survive a single redirect:</p>
+                    
+                    <pre class="language-php mb-4"><code class="text-slate-100">// Set flash message
+flash('success', 'User created successfully!');
+flash('error', 'Something went wrong');
+flash('info', 'Please check your email');</code></pre>
+
+                    <pre class="language-php mb-6"><code class="text-slate-100">&lt;!-- Display in views -->
+&lt;?= show_flash('success') ?>
+&lt;?= show_flash('error') ?>
+&lt;?= show_flash('info') ?></code></pre>
+                    </div>
+                </section>
+
+                <!-- HTTP Client -->
+                <section id="http-client" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🌐 HTTP Client</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">Make external API requests easily with the built-in HTTP client:</p>
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Basic Requests</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">// GET request
+$response = http('https://api.example.com')->get('/users');
+
+if ($response->ok()) {
+    $data = $response->json();
+}
+
+// POST with JSON
+$response = http('https://api.example.com')
+    ->post('/users', ['name' => 'John', 'email' => 'john@example.com']);
+
+// PUT request
+$response = http('https://api.example.com')
+    ->put('/users/1', ['name' => 'Updated Name']);
+
+// DELETE request
+$response = http('https://api.example.com')
+    ->delete('/users/1');</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Authentication</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">// API Key
+$response = http('https://api.example.com')
+    ->apiKey('your-api-key')
+    ->get('/data');
+
+// Bearer Token
+$response = http('https://api.example.com')
+    ->bearerToken('your-token')
+    ->get('/data');
+
+// Basic Auth
+$response = http('https://api.example.com')
+    ->basicAuth('username', 'password')
+    ->get('/data');</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Response Methods</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">$response->ok()</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">True if 2xx status</p>
+                        </div>
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">$response->status()</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">HTTP status code</p>
+                        </div>
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">$response->json()</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Decode JSON to array</p>
+                        </div>
+                        <div>
+                            <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">$response->body()</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Get raw response</p>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <!-- Email -->
+                <section id="email" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">📧 Email</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Send emails with a fluent API:</p>
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Basic Email</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">email()
+    ->to('user@example.com')
+    ->from('noreply@mysite.com')
+    ->subject('Welcome!')
+    ->body('Thank you for signing up')
+    ->send();</code></pre>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">HTML Email</h3>
+                    <pre class="language-php mb-6"><code class="text-slate-100">email()
+    ->to('user@example.com')
+    ->subject('Newsletter')
+    ->html('&lt;h1>Welcome!&lt;/h1>&lt;p>Thank you for signing up&lt;/p>')
+    ->attach('/path/to/file.pdf')
+    ->send();</code></pre>
+                    </div>
+                </section>
+
+                <!-- CLI -->
+                <section id="cli" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">⚡ CLI Commands</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Run framework commands from the command line:</p>
+                    
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Built-in Commands</h3>
+                    <div class="space-y-2 mb-6">
+                        <div class="flex items-start space-x-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-sm font-mono">./seed serve</code>
+                            <span class="text-gray-600 dark:text-gray-400 text-sm">Start development server</span>
+                        </div>
+                        <div class="flex items-start space-x-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-sm font-mono">./seed help</code>
+                            <span class="text-gray-600 dark:text-gray-400 text-sm">Show all commands</span>
+                        </div>
+                        <div class="flex items-start space-x-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-sm font-mono">./seed routes</code>
+                            <span class="text-gray-600 dark:text-gray-400 text-sm">List all routes</span>
+                        </div>
+                        <div class="flex items-start space-x-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-sm font-mono">./seed clear:cache</code>
+                            <span class="text-gray-600 dark:text-gray-400 text-sm">Clear cache files</span>
+                        </div>
+                        <div class="flex items-start space-x-3 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <code class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-sm font-mono">./seed clear:sessions</code>
+                            <span class="text-gray-600 dark:text-gray-400 text-sm">Clear sessions</span>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-8">Custom Commands</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">Register custom commands in <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">app/commands.php</code>:</p>
+                    <pre class="language-php mb-6"><code class="text-slate-100">$cli->register('db:seed', function($args) use ($cli) {
+    $cli->info('Seeding database...');
+    
+    try {
+        db()->loadSQL('app/sql/seed.sql');
+        $cli->success('Database seeded successfully!');
+    } catch (Exception $e) {
+        $cli->error('Seeding failed: ' . $e->getMessage());
+    }
+}, 'Seed the database with test data');</code></pre>
+                    </div>
+                </section>
+
+                <!-- Helper Functions -->
+                <section id="helpers" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">🔧 Helper Functions</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">Seed provides 40+ helper functions for common tasks:</p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">General Helpers</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">view($template, $data)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Render view</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">json($data, $status)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">JSON response</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">redirect($url)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Redirect to URL</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">dd($variable)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Dump and die</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">env($key, $default)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Environment variable</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">esc($string)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Escape HTML</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Form Helpers</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">input_value($key)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Form repopulation</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">form_error($key)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get validation error</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">has_error($key)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Check for error</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">show_error($key)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Display error</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">csrf_field()</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">CSRF token field</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">validate($data, $rules)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Validate input</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Database & Auth</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">db()</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get database instance</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">auth()</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get current user</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">is_logged_in()</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Check auth status</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">user_id()</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Get user ID</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Logging</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">log_info($msg)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Log info</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">log_error($msg)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Log error</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
+                                    <code class="text-blue-600 dark:text-blue-400 text-sm">log_debug($msg)</code>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Log debug</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <!-- Best Practices -->
+                <section id="best-practices" class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">⭐ Best Practices</h2>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Security</h3>
+                            <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                <li>✓ Always escape output: <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">&lt;?= esc($value) ?></code></li>
+                                <li>✓ Use prepared statements for all queries</li>
+                                <li>✓ Enable CSRF protection for forms</li>
+                                <li>✓ Validate all user input</li>
+                                <li>✓ Hash passwords with <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">Auth::hashPassword()</code></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Database</h3>
+                            <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                <li>✓ Use models for complex logic</li>
+                                <li>✓ Use transactions for related operations</li>
+                                <li>✓ Index frequently queried columns</li>
+                                <li>✓ Never use raw queries without <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-gray-100">raw()</code></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Code Organization</h3>
+                            <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                <li>✓ Keep controllers thin (logic in models)</li>
+                                <li>✓ Use descriptive names (mixedCase for files)</li>
+                                <li>✓ Group related routes</li>
+                                <li>✓ Use middleware for common functionality</li>
+                                <li>✓ Create custom helpers for repeated code</li>
+                            </ul>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="mt-16 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
+                    <p class="text-gray-600 dark:text-gray-400 mb-2">Seed Framework v1.0.0 • MIT License • By iQ</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-500">
+                        <a href="https://github.com/iQ-Global/seed" class="text-blue-600 dark:text-blue-400 hover:underline">GitHub</a> •
+                        <a href="../text/seed-framework-complete-guide.txt" class="text-blue-600 dark:text-blue-400 hover:underline">Text Guide</a> •
+                        <a href="../context/quick-reference.md" class="text-blue-600 dark:text-blue-400 hover:underline">Quick Reference</a>
+                    </p>
+                </footer>
+                
+            </div>
+        </main>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        function docApp() {
+            return {
+                sidebarOpen: window.innerWidth >= 1024,
+                activeSection: 'intro',
+                searchQuery: '',
+                searchResults: [],
+                darkMode: false,
+                
+                navigation: [
+                    { id: 'intro', title: '🏠 Introduction' },
+                    { id: 'overview', title: '📖 Overview' },
+                    { id: 'quick-start', title: '🚀 Quick Start' },
+                    { 
+                        id: 'routing', 
+                        title: '🎯 Routing',
+                        subsections: [
+                            { id: 'routing-basics', title: 'Basic Routes' },
+                            { id: 'routing-parameters', title: 'Route Parameters' },
+                            { id: 'routing-middleware', title: 'Middleware' },
+                            { id: 'routing-groups', title: 'Route Groups' }
+                        ]
+                    },
+                    { 
+                        id: 'controllers', 
+                        title: '🎮 Controllers & Models',
+                        subsections: [
+                            { id: 'controllers-basics', title: 'Controllers' },
+                            { id: 'models-basics', title: 'Models' }
+                        ]
+                    },
+                    { id: 'views', title: '👁️ Views & Templates' },
+                    { id: 'database', title: '💾 Database' },
+                    { id: 'validation', title: '✅ Validation' },
+                    { id: 'security', title: '🛡️ Security' },
+                    { id: 'authentication', title: '🔐 Authentication' },
+                    { id: 'sessions', title: '💬 Sessions & Flash' },
+                    { id: 'http-client', title: '🌐 HTTP Client' },
+                    { id: 'email', title: '📧 Email' },
+                    { id: 'cli', title: '⚡ CLI Commands' },
+                    { id: 'helpers', title: '🔧 Helper Functions' },
+                    { id: 'best-practices', title: '⭐ Best Practices' }
+                ],
+                
+                init() {
+                    // Check for saved preference, otherwise use OS preference
+                    const savedMode = localStorage.getItem('darkMode');
+                    
+                    if (savedMode !== null) {
+                        this.darkMode = savedMode === 'true';
+                    } else {
+                        // Use OS preference
+                        this.darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    }
+                    
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                    }
+                },
+                
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('darkMode', this.darkMode);
+                    
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+                
+                toggleSidebar() {
+                    this.sidebarOpen = !this.sidebarOpen;
+                },
+                
+                closeSidebarOnMobile() {
+                    if (window.innerWidth < 1024) {
+                        this.sidebarOpen = false;
+                    }
+                },
+                
+                setActive(id) {
+                    this.activeSection = id;
+                },
+                
+                performSearch() {
+                    if (!this.searchQuery) {
+                        this.searchResults = [];
+                        return;
+                    }
+                    
+                    const query = this.searchQuery.toLowerCase();
+                    const results = [];
+                    
+                    // Search through all sections
+                    document.querySelectorAll('section[id]').forEach(section => {
+                        const text = section.textContent.toLowerCase();
+                        const title = section.querySelector('h2, h3')?.textContent || '';
+                        
+                        if (text.includes(query)) {
+                            const index = text.indexOf(query);
+                            const snippet = text.substring(Math.max(0, index - 50), Math.min(text.length, index + 100));
+                            
+                            results.push({
+                                id: section.id,
+                                title: title,
+                                snippet: this.highlightText(snippet, query)
+                            });
+                        }
+                    });
+                    
+                    this.searchResults = results.slice(0, 10);
+                },
+                
+                highlightText(text, query) {
+                    const regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                    return text.replace(regex, '<span class="search-highlight">$1</span>');
+                }
+            }
+        }
+        
+        // Track scroll position for active section
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section[id]');
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 100 && rect.bottom >= 100) {
+                    currentSection = section.id;
+                }
+            });
+            
+            if (currentSection) {
+                const app = Alpine.$data(document.querySelector('[x-data]'));
+                if (app) app.activeSection = currentSection;
+            }
+        });
+    </script>
+</body>
+</html>
