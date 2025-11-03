@@ -791,7 +791,7 @@ SESSION_TABLE=sessions
 SESSION_LIFETIME=120
 
 To use database sessions:
-1. Run the SQL file: app/sql/sessions.sql
+1. Run the SQL file: system/modules/session/sessions.sql
 2. Set SESSION_DRIVER=database in .env
 3. Sessions now stored in database with user tracking
 

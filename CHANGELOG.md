@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Custom filename support
 - **Database Session Driver** - Production-ready sessions
   - `DatabaseSessionDriver` class implementing SessionHandlerInterface
-  - SQL file for sessions table (`app/sql/sessions.sql`)
+  - SQL file for sessions table (`system/modules/session/sessions.sql`)
   - Configurable via `SESSION_DRIVER=database`
   - Automatic garbage collection
   - Stores user_id, IP address, user agent
