@@ -17,7 +17,12 @@ class Session {
             ini_set('session.gc_maxlifetime', $lifetime);
             session_set_cookie_params($lifetime);
             
-            if ($driver === 'file') {
+            if ($driver === 'database') {
+                // Use database session handler
+                $handler = new \Seed\Modules\Session\DatabaseSessionDriver();
+                session_set_save_handler($handler, true);
+            } elseif ($driver === 'file') {
+                // Use file-based sessions
                 $sessionPath = STORAGE_PATH . '/sessions';
                 if (!is_dir($sessionPath)) {
                     mkdir($sessionPath, 0755, true);

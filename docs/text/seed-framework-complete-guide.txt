@@ -2,7 +2,7 @@
 Seed Framework - Complete Guide for AI Context
 ================================================================================
 
-Version: 1.0.1
+Version: 1.0.2
 License: MIT
 Author: iQ
 Website: https://github.com/iQ-Global/seed
@@ -27,12 +27,14 @@ Table of Contents
 14. Storage & Files
 15. Configuration
 16. Events
-17. CLI Commands
-18. Helper Functions Reference
-19. Error Handling & Logging
-20. Best Practices
-21. Common Patterns
-22. Troubleshooting
+17. Pagination
+18. File Downloads & Streaming
+19. CLI Commands
+20. Helper Functions Reference
+21. Error Handling & Logging
+22. Best Practices
+23. Common Patterns
+24. Troubleshooting
 
 ================================================================================
 1. Overview & Philosophy
@@ -777,9 +779,29 @@ public function logout() {
 
 Session Management:
 
-Sessions are file-based by default (configured in .env):
+Session Drivers:
+
+File-based (default):
 SESSION_DRIVER=file
 SESSION_LIFETIME=120  # minutes
+
+Database-based (production recommended):
+SESSION_DRIVER=database
+SESSION_TABLE=sessions
+SESSION_LIFETIME=120
+
+To use database sessions:
+1. Run the SQL file: app/sql/sessions.sql
+2. Set SESSION_DRIVER=database in .env
+3. Sessions now stored in database with user tracking
+
+Database sessions include:
+- User ID (if authenticated)
+- IP address
+- User agent
+- Session payload
+- Last activity timestamp
+- Automatic garbage collection
 
 Get Session Data:
 $value = session('key');
@@ -1157,8 +1179,162 @@ Common use cases:
 - Cache invalidation
 - Webhook triggers
 
+Built-in Framework Events:
+
+The framework dispatches these events automatically:
+
+seed.booting
+    Dispatched before framework initialization
+    Use for: Early setup, service registration
+
+seed.booted
+    Dispatched after framework is ready
+    Use for: Post-initialization tasks
+
+request.received
+    Dispatched when HTTP request arrives
+    Data: ['request' => Request object]
+    Use for: Logging, analytics
+
+view.rendering
+    Dispatched before view renders
+    Data: ['view' => name, 'data' => array]
+    Can return array to inject global view data
+    Use for: Adding global variables to all views
+
+view.rendered
+    Dispatched after view rendered
+    Data: ['view' => name, 'content' => HTML]
+    Use for: Post-processing, logging
+
+query.executing
+    Dispatched before database query
+    Data: ['sql' => query, 'params' => array]
+    Use for: Query logging, debugging
+
+query.executed
+    Dispatched after query completes
+    Data: ['sql' => query, 'params' => array, 'rows' => count]
+    Use for: Performance monitoring
+
+Example - Log all queries:
+listen('query.executing', function($data) {
+    log_debug('SQL: ' . $data['sql'], $data['params']);
+});
+
+Example - Add global view data:
+listen('view.rendering', function($data) {
+    return [
+        'app_name' => config('app.name'),
+        'current_year' => date('Y')
+    ];
+});
+
 ================================================================================
-17. CLI Commands
+17. Pagination
+================================================================================
+
+Paginate Arrays:
+
+$items = range(1, 100);
+$paginated = paginate($items, 15);  // 15 items per page
+
+In view:
+<?php foreach ($paginated->items() as $item): ?>
+    <!-- Display item -->
+<?php endforeach; ?>
+
+<?= $paginated->links() ?>  <!-- Pagination links -->
+<p><?= $paginated->info() ?></p>  <!-- "Showing 1 to 15 of 100 results" -->
+
+Paginate Database Results:
+
+// In controller
+$users = db_paginate("SELECT * FROM users WHERE active = ?", [1], 20);
+
+view('users/index', ['users' => $users]);
+
+// In view
+<?php foreach ($users->items() as $user): ?>
+    <div><?= esc($user->name) ?></div>
+<?php endforeach; ?>
+
+<?= $users->links() ?>
+
+Pagination Methods:
+
+$paginated->items()          // Get current page items
+$paginated->total()          // Total items
+$paginated->perPage()        // Items per page
+$paginated->currentPage()    // Current page number
+$paginated->lastPage()       // Last page number
+$paginated->onFirstPage()    // Boolean
+$paginated->onLastPage()     // Boolean
+$paginated->hasMorePages()   // Boolean
+$paginated->url($page)       // URL for specific page
+$paginated->previousPageUrl() // Previous page URL
+$paginated->nextPageUrl()    // Next page URL
+$paginated->firstItem()      // First item number (e.g., 16)
+$paginated->lastItem()       // Last item number (e.g., 30)
+$paginated->links($sides)    // HTML pagination links
+$paginated->info()           // Info string
+
+Custom Pagination Links:
+
+// Show 2 pages on each side of current page
+<?= $paginated->links(2) ?>
+
+// Default is 3 pages on each side
+<?= $paginated->links() ?>
+
+================================================================================
+18. File Downloads & Streaming
+================================================================================
+
+Download File (as attachment):
+
+// Force download
+return response()->download('/path/to/invoice.pdf');
+
+// Download with custom filename
+return response()->download('/path/to/file.pdf', 'Invoice-2025.pdf');
+
+// From storage
+$path = storage()->path('invoices/invoice-123.pdf');
+return response()->download($path);
+
+Display File Inline:
+
+// Display PDF in browser
+return response()->file('/path/to/document.pdf');
+
+// Display image
+return response()->file(storage('public')->path('image.jpg'));
+
+Stream Large Files:
+
+// Stream video with range request support (seeking)
+return response()->stream('/path/to/video.mp4');
+
+// Memory-efficient for large files
+return response()->stream(storage()->path('large-file.zip'));
+
+Supported MIME Types:
+
+PDF, ZIP, JPG, PNG, GIF, SVG, MP4, MP3, TXT, HTML, CSS, JS, JSON, XML, and more.
+Unknown extensions default to application/octet-stream.
+
+Use Cases:
+
+- PDF invoices and reports
+- Image galleries
+- Video streaming
+- File downloads
+- Document previews
+- Large file handling
+
+================================================================================
+19. CLI Commands
 ================================================================================
 
 Running CLI:
@@ -1217,7 +1393,7 @@ $cli->register('db:seed', function($args) use ($cli) {
 }, 'Seed the database with test data');
 
 ================================================================================
-18. Helper Functions Reference
+20. Helper Functions Reference
 ================================================================================
 
 General Helpers:
@@ -1420,8 +1596,59 @@ array_only($array, $keys)
 array_except($array, $keys)
     Remove specified keys
 
+Pagination Helpers:
+
+paginate($items, $perPage = 15, $page = null)
+    Paginate array or results
+
+db_paginate($query, $params = [], $perPage = 15, $page = null)
+    Paginate database query results
+
+String Helpers:
+
+str_limit($string, $limit = 100, $end = '...')
+    Truncate string with ellipsis
+
+str_slug($string, $separator = '-')
+    Generate URL-friendly slug
+
+str_random($length = 16)
+    Generate random string
+
+str_contains($haystack, $needle)
+    Check if string contains substring
+
+str_starts_with($haystack, $needle)
+    Check if string starts with substring
+
+str_ends_with($haystack, $needle)
+    Check if string ends with substring
+
+str_has($haystack, $needle)
+    Alias for str_contains
+
+str_starts($haystack, $needle)
+    Alias for str_starts_with
+
+str_ends($haystack, $needle)
+    Alias for str_ends_with
+
+str_title($string)
+    Convert to Title Case
+
+str_camel($string)
+    Convert to camelCase
+
+str_studly($string)
+    Convert to StudlyCase
+
+Response Helpers:
+
+response()
+    Get Response instance for downloads/streaming
+
 ================================================================================
-19. Error Handling & Logging
+21. Error Handling & Logging
 ================================================================================
 
 Error Modes:
@@ -1492,7 +1719,7 @@ Logger::error('Error occurred', ['exception' => $e->getMessage()]);
 Logger::debug('Debug info', ['data' => $data]);
 
 ================================================================================
-20. Best Practices
+22. Best Practices
 ================================================================================
 
 Security:
@@ -1547,7 +1774,7 @@ Validation:
 4. Use flash messages for feedback
 
 ================================================================================
-21. Common Patterns
+23. Common Patterns
 ================================================================================
 
 CRUD Operations:
@@ -1693,7 +1920,7 @@ public function loadMore() {
 }
 
 ================================================================================
-22. Troubleshooting
+24. Troubleshooting
 ================================================================================
 
 Common Issues:

@@ -8,6 +8,17 @@ namespace Seed\Core;
 class View {
     // Render view with data
     public static function render($view, $data = []) {
+        // Dispatch view rendering event (can modify data)
+        $eventData = Event::dispatch('view.rendering', [
+            'view' => $view,
+            'data' => $data
+        ]);
+        
+        // If event listener returns data, use it
+        if (!empty($eventData) && is_array($eventData[0])) {
+            $data = array_merge($data, $eventData[0]);
+        }
+        
         // Extract data to variables
         extract($data);
         
@@ -26,6 +37,12 @@ class View {
         
         // Get contents and clean buffer
         $content = ob_get_clean();
+        
+        // Dispatch view rendered event
+        Event::dispatch('view.rendered', [
+            'view' => $view,
+            'content' => $content
+        ]);
         
         return $content;
     }

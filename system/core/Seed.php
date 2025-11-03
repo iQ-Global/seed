@@ -17,11 +17,17 @@ class Seed {
         // Load environment configuration
         $this->loadEnvironment();
         
+        // Dispatch booting event
+        Event::dispatch('seed.booting');
+        
         // Initialize error handling
         $this->initializeErrorHandling();
         
         // Initialize core components
         $this->initializeCore();
+        
+        // Dispatch booted event
+        Event::dispatch('seed.booted');
     }
     
     // Define framework path constants
@@ -87,6 +93,9 @@ class Seed {
     
     // Run the application
     public function run() {
+        // Dispatch request received event
+        Event::dispatch('request.received', ['request' => $this->request]);
+        
         // Load routes
         $routesFile = APP_PATH . '/routes.php';
         

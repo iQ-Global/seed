@@ -98,5 +98,133 @@ class Response {
             $this->send("<h1>{$status} - Error</h1><p>{$message}</p>");
         }
     }
+    
+    // Download file (as attachment)
+    public function download($file, $name = null) {
+        if (!file_exists($file)) {
+            return $this->notFound('File not found');
+        }
+        
+        $name = $name ?? basename($file);
+        $mimeType = $this->getMimeType($file);
+        
+        header('Content-Type: ' . $mimeType);
+        header('Content-Disposition: attachment; filename="' . $name . '"');
+        header('Content-Length: ' . filesize($file));
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        
+        readfile($file);
+        exit;
+    }
+    
+    // Display file inline (e.g., PDF in browser)
+    public function file($file, $name = null) {
+        if (!file_exists($file)) {
+            return $this->notFound('File not found');
+        }
+        
+        $name = $name ?? basename($file);
+        $mimeType = $this->getMimeType($file);
+        
+        header('Content-Type: ' . $mimeType);
+        header('Content-Disposition: inline; filename="' . $name . '"');
+        header('Content-Length: ' . filesize($file));
+        
+        readfile($file);
+        exit;
+    }
+    
+    // Stream large file (memory efficient)
+    public function stream($file, $name = null) {
+        if (!file_exists($file)) {
+            return $this->notFound('File not found');
+        }
+        
+        $name = $name ?? basename($file);
+        $mimeType = $this->getMimeType($file);
+        $filesize = filesize($file);
+        
+        // Handle range requests for video streaming
+        $rangeHeader = $_SERVER['HTTP_RANGE'] ?? null;
+        
+        if ($rangeHeader) {
+            $this->streamRange($file, $filesize, $mimeType, $rangeHeader);
+        } else {
+            $this->streamFull($file, $filesize, $mimeType, $name);
+        }
+    }
+    
+    // Stream full file
+    private function streamFull($file, $filesize, $mimeType, $name) {
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . $filesize);
+        header('Content-Disposition: inline; filename="' . $name . '"');
+        header('Accept-Ranges: bytes');
+        
+        $handle = fopen($file, 'rb');
+        while (!feof($handle)) {
+            echo fread($handle, 8192);
+            flush();
+        }
+        fclose($handle);
+        exit;
+    }
+    
+    // Stream file range (for video seeking)
+    private function streamRange($file, $filesize, $mimeType, $rangeHeader) {
+        list($unit, $range) = explode('=', $rangeHeader, 2);
+        list($start, $end) = explode('-', $range);
+        
+        $start = (int) $start;
+        $end = $end ? (int) $end : $filesize - 1;
+        $length = $end - $start + 1;
+        
+        header('HTTP/1.1 206 Partial Content');
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . $length);
+        header('Content-Range: bytes ' . $start . '-' . $end . '/' . $filesize);
+        header('Accept-Ranges: bytes');
+        
+        $handle = fopen($file, 'rb');
+        fseek($handle, $start);
+        
+        $remaining = $length;
+        while ($remaining > 0 && !feof($handle)) {
+            $read = min(8192, $remaining);
+            echo fread($handle, $read);
+            $remaining -= $read;
+            flush();
+        }
+        
+        fclose($handle);
+        exit;
+    }
+    
+    // Get MIME type for file
+    private function getMimeType($file) {
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'zip' => 'application/zip',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'mp4' => 'video/mp4',
+            'mp3' => 'audio/mpeg',
+            'txt' => 'text/plain',
+            'html' => 'text/html',
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'json' => 'application/json',
+            'xml' => 'application/xml',
+        ];
+        
+        return $mimeTypes[$extension] ?? 'application/octet-stream';
+    }
 }
+
 

@@ -56,11 +56,26 @@ class Database {
     // Execute query with parameters
     public function query($sql, $params = []) {
         try {
+            // Dispatch query executing event
+            \Seed\Core\Event::dispatch('query.executing', [
+                'sql' => $sql,
+                'params' => $params
+            ]);
+            
             $conn = $this->getConnection();
             $stmt = $conn->prepare($sql);
             $stmt->execute($params);
             
-            return $stmt->fetchAll();
+            $results = $stmt->fetchAll();
+            
+            // Dispatch query executed event
+            \Seed\Core\Event::dispatch('query.executed', [
+                'sql' => $sql,
+                'params' => $params,
+                'rows' => count($results)
+            ]);
+            
+            return $results;
         } catch (PDOException $e) {
             log_error('Query failed', ['sql' => $sql, 'error' => $e->getMessage()]);
             throw new \Exception('Query failed: ' . $e->getMessage());

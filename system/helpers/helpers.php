@@ -78,3 +78,8 @@ function log_debug($message, $context = []) {
     \Seed\Core\Logger::debug($message, $context);
 }
 
+// Create response instance
+function response() {
+    return new \Seed\Core\Response();
+}
+
