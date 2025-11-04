@@ -1,17 +1,30 @@
 <?php
 /**
- * Email - Simple SMTP email sending
+ * Email - SMTP email sending with PHPMailer
  */
 
 namespace Seed\Modules\Email;
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+
 class Email {
+    private $mailer;
     private $to = [];
+    private $cc = [];
+    private $bcc = [];
     private $from = [];
+    private $replyTo = [];
     private $subject = '';
     private $body = '';
+    private $altBody = '';
     private $isHtml = false;
     private $attachments = [];
+    
+    public function __construct() {
+        $this->mailer = new PHPMailer(true);
+        $this->configureSMTP();
+    }
     
     // Set recipient(s)
     public function to($email, $name = null) {
@@ -52,6 +65,38 @@ class Email {
         return $this;
     }
     
+    // Set CC
+    public function cc($email, $name = null) {
+        if (is_array($email)) {
+            $this->cc = $email;
+        } else {
+            $this->cc[] = ['email' => $email, 'name' => $name];
+        }
+        return $this;
+    }
+    
+    // Set BCC
+    public function bcc($email, $name = null) {
+        if (is_array($email)) {
+            $this->bcc = $email;
+        } else {
+            $this->bcc[] = ['email' => $email, 'name' => $name];
+        }
+        return $this;
+    }
+    
+    // Set Reply-To
+    public function replyTo($email, $name = null) {
+        $this->replyTo = ['email' => $email, 'name' => $name];
+        return $this;
+    }
+    
+    // Set alternative plain-text body
+    public function altBody($body) {
+        $this->altBody = $body;
+        return $this;
+    }
+    
     // Add attachment
     public function attach($path, $name = null) {
         $this->attachments[] = [
@@ -61,79 +106,104 @@ class Email {
         return $this;
     }
     
+    // Configure SMTP settings
+    private function configureSMTP() {
+        try {
+            $mailer = env('MAIL_MAILER', 'smtp');
+            
+            if ($mailer === 'smtp') {
+                $this->mailer->isSMTP();
+                $this->mailer->Host = env('MAIL_HOST', 'smtp.mailtrap.io');
+                $this->mailer->SMTPAuth = true;
+                $this->mailer->Username = env('MAIL_USERNAME', '');
+                $this->mailer->Password = env('MAIL_PASSWORD', '');
+                $this->mailer->SMTPSecure = env('MAIL_ENCRYPTION', 'tls');
+                $this->mailer->Port = env('MAIL_PORT', 587);
+            }
+            
+            // Charset
+            $this->mailer->CharSet = 'UTF-8';
+        } catch (PHPMailerException $e) {
+            log_error('Email SMTP configuration failed', ['error' => $e->getMessage()]);
+        }
+    }
+    
     // Send email
     public function send() {
-        // Set default from if not set
-        if (empty($this->from)) {
-            $this->from([
-                'email' => env('MAIL_FROM_ADDRESS'),
-                'name' => env('MAIL_FROM_NAME')
+        try {
+            // Set default from if not set
+            if (empty($this->from)) {
+                $this->from = [
+                    'email' => env('MAIL_FROM_ADDRESS'),
+                    'name' => env('MAIL_FROM_NAME')
+                ];
+            }
+            
+            // Set from
+            $this->mailer->setFrom($this->from['email'], $this->from['name'] ?? '');
+            
+            // Add recipients
+            foreach ($this->to as $recipient) {
+                $this->mailer->addAddress($recipient['email'], $recipient['name'] ?? '');
+            }
+            
+            // Add CC
+            foreach ($this->cc as $recipient) {
+                $this->mailer->addCC($recipient['email'], $recipient['name'] ?? '');
+            }
+            
+            // Add BCC
+            foreach ($this->bcc as $recipient) {
+                $this->mailer->addBCC($recipient['email'], $recipient['name'] ?? '');
+            }
+            
+            // Set reply-to
+            if (!empty($this->replyTo)) {
+                $this->mailer->addReplyTo($this->replyTo['email'], $this->replyTo['name'] ?? '');
+            }
+            
+            // Set subject and body
+            $this->mailer->Subject = $this->subject;
+            
+            if ($this->isHtml) {
+                $this->mailer->isHTML(true);
+                $this->mailer->Body = $this->body;
+                $this->mailer->AltBody = $this->altBody ?: strip_tags($this->body);
+            } else {
+                $this->mailer->isHTML(false);
+                $this->mailer->Body = $this->body;
+            }
+            
+            // Add attachments
+            foreach ($this->attachments as $attachment) {
+                $this->mailer->addAttachment($attachment['path'], $attachment['name']);
+            }
+            
+            // Send
+            $success = $this->mailer->send();
+            
+            // Clear for next email
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+            $this->mailer->clearCCs();
+            $this->mailer->clearBCCs();
+            $this->mailer->clearReplyTos();
+            
+            return $success;
+            
+        } catch (PHPMailerException $e) {
+            log_error('Email send failed', [
+                'error' => $e->getMessage(),
+                'to' => $this->to,
+                'subject' => $this->subject
             ]);
+            return false;
         }
-        
-        // Build headers
-        $headers = $this->buildHeaders();
-        
-        // Build recipients
-        $recipients = $this->buildRecipients();
-        
-        // Send using PHP mail() for now (basic implementation)
-        // Can be extended to use SMTP in the future
-        $success = mail(
-            $recipients,
-            $this->subject,
-            $this->body,
-            $headers
-        );
-        
-        return $success;
     }
     
-    // Build email headers
-    private function buildHeaders() {
-        $headers = [];
-        
-        // From
-        if (!empty($this->from)) {
-            $fromEmail = $this->from['email'];
-            $fromName = $this->from['name'];
-            
-            if ($fromName) {
-                $headers[] = "From: {$fromName} <{$fromEmail}>";
-            } else {
-                $headers[] = "From: {$fromEmail}";
-            }
-        }
-        
-        // Content-Type
-        if ($this->isHtml) {
-            $headers[] = "Content-Type: text/html; charset=UTF-8";
-        } else {
-            $headers[] = "Content-Type: text/plain; charset=UTF-8";
-        }
-        
-        // MIME version
-        $headers[] = "MIME-Version: 1.0";
-        
-        return implode("\r\n", $headers);
-    }
-    
-    // Build recipients string
-    private function buildRecipients() {
-        $recipients = [];
-        
-        foreach ($this->to as $recipient) {
-            $email = $recipient['email'];
-            $name = $recipient['name'] ?? null;
-            
-            if ($name) {
-                $recipients[] = "{$name} <{$email}>";
-            } else {
-                $recipients[] = $email;
-            }
-        }
-        
-        return implode(', ', $recipients);
+    // Get last error message
+    public function getError() {
+        return $this->mailer->ErrorInfo;
     }
 }
 

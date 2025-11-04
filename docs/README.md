@@ -87,4 +87,4 @@ This directory contains three types of documentation for different use cases.
 
 ---
 
-**Seed Framework v1.0.0** • MIT License
+**Seed Framework v1.5.0** • MIT License

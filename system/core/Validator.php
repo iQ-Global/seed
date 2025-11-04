@@ -138,6 +138,178 @@ class Validator {
         }
     }
     
+    // Validation: confirmed (for password_confirmation)
+    private function validateConfirmed($field, $value) {
+        $confirmField = $field . '_confirmation';
+        $confirmValue = $this->data[$confirmField] ?? null;
+        
+        if ($value !== $confirmValue) {
+            $this->addError($field, ucfirst($field) . ' confirmation does not match.');
+        }
+    }
+    
+    // Validation: matches another field
+    private function validateMatches($field, $value, $params) {
+        $otherField = $params[0] ?? '';
+        $otherValue = $this->data[$otherField] ?? null;
+        
+        if ($value !== $otherValue) {
+            $this->addError($field, ucfirst($field) . ' must match ' . $otherField . '.');
+        }
+    }
+    
+    // Validation: different from another field
+    private function validateDifferent($field, $value, $params) {
+        $otherField = $params[0] ?? '';
+        $otherValue = $this->data[$otherField] ?? null;
+        
+        if ($value === $otherValue) {
+            $this->addError($field, ucfirst($field) . ' must be different from ' . $otherField . '.');
+        }
+    }
+    
+    // Validation: date
+    private function validateDate($field, $value) {
+        if ($value && !strtotime($value)) {
+            $this->addError($field, ucfirst($field) . ' must be a valid date.');
+        }
+    }
+    
+    // Validation: date format
+    private function validateDateFormat($field, $value, $params) {
+        $format = $params[0] ?? 'Y-m-d';
+        
+        if ($value) {
+            $date = \DateTime::createFromFormat($format, $value);
+            if (!$date || $date->format($format) !== $value) {
+                $this->addError($field, ucfirst($field) . " must match the format {$format}.");
+            }
+        }
+    }
+    
+    // Validation: after date
+    private function validateAfter($field, $value, $params) {
+        $compareDate = $params[0] ?? 'today';
+        
+        if ($value) {
+            $valueTime = strtotime($value);
+            $compareTime = strtotime($compareDate);
+            
+            if ($valueTime === false || $compareTime === false || $valueTime <= $compareTime) {
+                $this->addError($field, ucfirst($field) . " must be after {$compareDate}.");
+            }
+        }
+    }
+    
+    // Validation: before date
+    private function validateBefore($field, $value, $params) {
+        $compareDate = $params[0] ?? 'today';
+        
+        if ($value) {
+            $valueTime = strtotime($value);
+            $compareTime = strtotime($compareDate);
+            
+            if ($valueTime === false || $compareTime === false || $valueTime >= $compareTime) {
+                $this->addError($field, ucfirst($field) . " must be before {$compareDate}.");
+            }
+        }
+    }
+    
+    // Validation: between (numeric or string length)
+    private function validateBetween($field, $value, $params) {
+        $min = $params[0] ?? 0;
+        $max = $params[1] ?? 0;
+        
+        if (is_numeric($value)) {
+            if ($value < $min || $value > $max) {
+                $this->addError($field, ucfirst($field) . " must be between {$min} and {$max}.");
+            }
+        } else {
+            $length = strlen($value);
+            if ($length < $min || $length > $max) {
+                $this->addError($field, ucfirst($field) . " must be between {$min} and {$max} characters.");
+            }
+        }
+    }
+    
+    // Validation: in list (whitelist)
+    private function validateIn($field, $value, $params) {
+        if ($value && !in_array($value, $params)) {
+            $allowed = implode(', ', $params);
+            $this->addError($field, ucfirst($field) . " must be one of: {$allowed}.");
+        }
+    }
+    
+    // Validation: not in list (blacklist)
+    private function validateNotIn($field, $value, $params) {
+        if ($value && in_array($value, $params)) {
+            $this->addError($field, ucfirst($field) . ' contains an invalid value.');
+        }
+    }
+    
+    // Validation: regex pattern
+    private function validateRegex($field, $value, $params) {
+        $pattern = $params[0] ?? '';
+        
+        if ($value && !preg_match($pattern, $value)) {
+            $this->addError($field, ucfirst($field) . ' format is invalid.');
+        }
+    }
+    
+    // Validation: unique in database
+    private function validateUnique($field, $value, $params) {
+        $table = $params[0] ?? '';
+        $column = $params[1] ?? $field;
+        $except = $params[2] ?? null;
+        
+        if ($value && $table) {
+            $db = db();
+            $query = "SELECT COUNT(*) as count FROM {$table} WHERE {$column} = ?";
+            $bindings = [$value];
+            
+            if ($except !== null) {
+                $query .= " AND id != ?";
+                $bindings[] = $except;
+            }
+            
+            $result = $db->queryOne($query, $bindings);
+            
+            if ($result && $result['count'] > 0) {
+                $this->addError($field, ucfirst($field) . ' already exists.');
+            }
+        }
+    }
+    
+    // Validation: exists in database
+    private function validateExists($field, $value, $params) {
+        $table = $params[0] ?? '';
+        $column = $params[1] ?? $field;
+        
+        if ($value && $table) {
+            $db = db();
+            $query = "SELECT COUNT(*) as count FROM {$table} WHERE {$column} = ?";
+            $result = $db->queryOne($query, [$value]);
+            
+            if (!$result || $result['count'] == 0) {
+                $this->addError($field, ucfirst($field) . ' does not exist.');
+            }
+        }
+    }
+    
+    // Validation: integer
+    private function validateInteger($field, $value) {
+        if ($value !== null && $value !== '' && !filter_var($value, FILTER_VALIDATE_INT)) {
+            $this->addError($field, ucfirst($field) . ' must be an integer.');
+        }
+    }
+    
+    // Validation: boolean
+    private function validateBoolean($field, $value) {
+        if ($value !== null && $value !== '' && !in_array($value, [true, false, 0, 1, '0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'], true)) {
+            $this->addError($field, ucfirst($field) . ' must be true or false.');
+        }
+    }
+    
     // Check if validation failed
     public function failed() {
         return !empty($this->errors);

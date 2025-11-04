@@ -21,6 +21,19 @@ class DatabaseManager {
     
     // Create database connection
     private static function createConnection($driver) {
+        // MongoDB uses different config
+        if ($driver === 'mongodb' || $driver === 'mongo') {
+            $config = [
+                'host' => env('MONGODB_HOST', 'localhost'),
+                'port' => env('MONGODB_PORT', '27017'),
+                'database' => env('MONGODB_DATABASE', 'seed'),
+                'username' => env('MONGODB_USERNAME', ''),
+                'password' => env('MONGODB_PASSWORD', ''),
+            ];
+            return new MongoDBDatabase($config);
+        }
+        
+        // SQL databases config
         $config = [
             'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', $driver === 'pgsql' ? 5432 : 3306),

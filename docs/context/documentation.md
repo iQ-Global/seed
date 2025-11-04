@@ -1,7 +1,8 @@
-# Seed Framework v1.0 - Documentation Guide
+# Seed Framework v1.5.0 - Documentation Guide
 
 **Created**: November 1, 2025  
-**Framework Version**: 1.0.0
+**Updated**: November 3, 2025  
+**Framework Version**: 1.5.0
 
 This document summarizes all available documentation for Seed Framework.
 
@@ -41,7 +42,7 @@ docs/
 - 20 comprehensive sections covering all features
 
 ### 3. Quick Reference
-- Open `docs/QUICK-REFERENCE.md`
+- Open `docs/context/quick-reference.md`
 - Essential commands and code snippets
 - Common patterns (CRUD, API, Auth)
 - Troubleshooting tips
@@ -72,14 +73,14 @@ docs/
 - ✓ Searchable with grep/find
 - ✓ No dependencies
 
-### Quick Reference (`docs/QUICK-REFERENCE.md`)
+### Quick Reference (`docs/context/quick-reference.md`)
 - ✓ Essential commands
 - ✓ Common code patterns
 - ✓ Helper function reference
 - ✓ CRUD examples
 - ✓ API patterns
 - ✓ Auth examples
-- ✓ Troubleshooting
+- ✓ MongoDB, AI, Enhanced Auth examples
 
 ---
 
@@ -134,7 +135,7 @@ TEXT (docs/text/seed-framework-complete-guide.txt):
   FEATURES: Complete guide, no dependencies
   USE WHEN: Loading into AI, command-line reference
 
-MARKDOWN (docs/QUICK-REFERENCE.md):
+MARKDOWN (docs/context/quick-reference.md):
   BEST FOR: Quick lookups, common tasks
   FEATURES: Concise, practical examples
   USE WHEN: Need fast reference during development
@@ -143,9 +144,9 @@ MARKDOWN (docs/QUICK-REFERENCE.md):
 ## File Sizes
 ---
 
-docs/text/seed-framework-complete-guide.txt    ~50KB  (Complete reference)
-docs/html/index.html                             ~TBD  (Full HTML docs)
-docs/QUICK-REFERENCE.md                          ~12KB (Quick reference)
+docs/text/seed-framework-complete-guide.txt    ~60KB  (Complete reference)
+docs/html/index.html                            ~85KB  (Full HTML docs)
+docs/context/quick-reference.md                 ~25KB (Quick reference - v1.5.0)
 docs/examples/nginx.conf                         ~6KB  (Nginx config)
 docs/examples/.htaccess                          ~4KB  (Apache config)
 
@@ -166,28 +167,38 @@ When contributing to Seed Framework:
 ## Version History
 ---
 
-v1.0.0 (November 1, 2025)
+v1.5.0 (November 3, 2025) - "SaaS Ready"
+- Added MongoDB documentation
+- Added Enhanced Authentication documentation
+- Added AI Interface documentation
+- Added Enhanced Email documentation
+- Added 15 new validation rules documentation
+- Updated all examples for v1.5.0
+
+v1.0.0 - v1.0.2 (November 1-2, 2025)
 - Initial release
 - Complete text-based guide created
 - HTML documentation with search created
 - Quick reference guide created
 - Configuration examples provided
-- All features documented
+- Core framework features documented
 
 ---
 ## Statistics
 ---
 
 Documentation Coverage:
-- Core Classes: 27/27 documented (100%)
-- Helper Functions: 40+/40+ documented (100%)
-- Modules: 7/7 documented (100%)
+- Core Classes: 43/43 documented (100%)
+- Helper Functions: 95+/95+ documented (100%)
+- Modules: 10/10 documented (100%)
 - Security Features: 6/6 documented (100%)
 - CLI Commands: 5/5 documented (100%)
+- Database Drivers: 3/3 documented (100%)
+- AI Providers: 2/2 documented (100%)
 
-Code Examples Provided: 100+
-Sections: 20 major topics
-Total Documentation Lines: ~2,000+
+Code Examples Provided: 150+
+Sections: 24+ major topics
+Total Documentation Lines: ~3,000+
 
 ---
 ## Feedback

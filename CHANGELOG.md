@@ -5,6 +5,141 @@ All notable changes to Seed Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-11-03 🚀 "SaaS Ready"
+
+**Major Feature Release** - Everything you need to build modern SaaS applications.
+
+### Added
+
+#### MongoDB Driver
+- **MongoDBDatabase** class with full MongoDB support
+- Same clean interface as MySQL/PostgreSQL drivers
+- CRUD operations: `query()`, `queryOne()`, `insert()`, `bulkInsert()`, `update()`, `delete()`
+- `aggregate()` for aggregation pipelines
+- `createIndex()` for index management
+- Transaction support (MongoDB 4.0+)
+- Connection management via DatabaseManager
+- Event hooks for query tracking
+- Configurable via `.env` (MONGODB_HOST, MONGODB_PORT, etc.)
+- Helper: `db('mongodb')` to access MongoDB driver
+
+#### Enhanced Authentication
+- **Password Reset Flow**
+  - `sendPasswordReset($email)` - Generate token and send email
+  - `resetPassword($token, $newPassword)` - Reset password with token
+  - `verifyResetToken($token)` - Validate reset token
+  - Secure token hashing and expiration
+  - Email templates included
+  - Configurable expiration (AUTH_PASSWORD_RESET_EXPIRATION)
+- **Email Verification**
+  - `sendVerificationEmail($user)` - Send verification email
+  - `verifyEmail($token)` - Verify email with token
+  - `isEmailVerified($userId)` - Check verification status
+  - Optional email verification middleware
+  - Configurable via AUTH_EMAIL_VERIFICATION
+- **Account Lockout**
+  - `recordLoginAttempt($email, $success)` - Track login attempts
+  - `isLocked($email)` - Check if account is locked
+  - `unlock($email)` - Manually unlock account
+  - Automatic lockout after N failed attempts
+  - Configurable attempts and duration (AUTH_LOCKOUT_ATTEMPTS, AUTH_LOCKOUT_DURATION)
+- **Remember Me**
+  - `login($userId, $remember = false)` - Login with remember me option
+  - `checkRememberToken()` - Auto-login from cookie
+  - `forgetRememberToken($userId)` - Revoke remember token
+  - Secure token management
+  - Configurable duration (AUTH_REMEMBER_DURATION)
+- **Helper Functions**: `send_password_reset()`, `reset_password()`, `send_verification_email()`, `verify_email()`, `is_email_verified()`, `is_account_locked()`, `unlock_account()`, `check_remember_token()`, `forget_remember_token()`
+- **Database Tables**: `password_resets`, `email_verifications`, `login_attempts`, `remember_tokens`
+
+#### AI Interface Module
+- **Unified AI Provider Interface**
+  - Support for OpenAI and Claude (Anthropic)
+  - Same API regardless of provider
+  - Easy provider switching
+  - Model-aware with automatic defaults
+- **OpenAI Provider**
+  - GPT-4o support (`gpt-4o`, `gpt-4o-mini`)
+  - GPT-5 support (`gpt-5`, `gpt-5-preview`, `gpt-5-turbo`)
+  - Full chat completion API
+  - Streaming support
+  - OpenAI-specific parameters (frequency_penalty, presence_penalty, response_format, seed)
+- **Claude Provider**
+  - Claude Sonnet 4 (`claude-sonnet-4-20250514`)
+  - Claude Sonnet 4.5 (`claude-sonnet-4.5-20250514`)
+  - Latest alias (`claude-sonnet-4-latest`)
+  - Full messages API
+  - Streaming support
+  - Claude-specific parameters (top_k, stop_sequences, metadata)
+- **Features**
+  - Conversation history management
+  - System prompts
+  - Model switching
+  - Token usage tracking
+  - Unified response format
+  - Comprehensive error handling
+- **Helper Functions**: `ai($provider)`, `ai_chat($prompt, $options)`, `ai_openai()`, `ai_claude()`
+- **Configuration**: `AI_DEFAULT_PROVIDER`, `OPENAI_API_KEY`, `OPENAI_DEFAULT_MODEL`, `CLAUDE_API_KEY`, `CLAUDE_DEFAULT_MODEL`
+
+#### Enhanced Email with PHPMailer
+- **Refactored Email class** using PHPMailer library
+- More reliable SMTP support
+- Better error handling and debugging
+- **New Features**:
+  - CC and BCC support: `cc($email, $name)`, `bcc($email, $name)`
+  - Reply-To: `replyTo($email, $name)`
+  - Alternative plain-text body: `altBody($body)`
+  - Better attachment handling
+  - Error reporting: `getError()`
+- **Backwards Compatible** - All existing methods work the same
+- **Configuration**: Enhanced .env options (MAIL_ENCRYPTION, better defaults)
+
+#### Additional Validation Rules
+- `confirmed` - Password confirmation (checks {field}_confirmation)
+- `matches:field` - Field must match another field
+- `different:field` - Field must be different from another field
+- `date` - Valid date format
+- `date_format:format` - Specific date format (Y-m-d, etc.)
+- `after:date` - Date after specified date
+- `before:date` - Date before specified date
+- `between:min,max` - Numeric/string between range
+- `in:list` - Value in whitelist
+- `not_in:list` - Value not in blacklist
+- `regex:pattern` - Custom regex pattern
+- `unique:table,column,except` - Database unique check
+- `exists:table,column` - Database existence check
+- `integer` - Must be integer
+- `boolean` - Must be boolean
+
+### Changed
+- **Version**: Updated to 1.5.0
+- **composer.json**: Added PHPMailer dependency, MongoDB suggestions, AI helper autoload
+- **DatabaseManager**: Added MongoDB driver support
+- **Email Module**: Completely refactored with PHPMailer (backwards compatible)
+
+### Dependencies
+- **Added**: PHPMailer (^6.9) - Required for email functionality
+- **Suggested**: mongodb/mongodb (^1.17) - Optional for MongoDB support
+
+### Database Schema
+Four new authentication tables (SQL files included):
+- `password_resets` - Password reset tokens
+- `email_verifications` - Email verification tokens
+- `login_attempts` - Failed login tracking
+- `remember_tokens` - Remember me tokens
+
+### Configuration
+New `.env` variables for all features:
+- MongoDB connection settings
+- Authentication behavior settings
+- AI provider API keys and models
+- Enhanced email configuration
+
+### Notes
+This is a **major feature release** with no breaking changes. All existing v1.0.x applications will continue to work. The new features are opt-in and can be used independently.
+
+---
+
 ## [1.0.2] - 2025-11-02
 
 ### Added

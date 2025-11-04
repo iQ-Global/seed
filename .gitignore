@@ -3,7 +3,6 @@
 
 # Dependencies
 /vendor/
-composer.lock
 
 # Storage (logs, cache, sessions, uploads)
 /app/storage/logs/*

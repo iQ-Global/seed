@@ -593,5 +593,280 @@ tail -f app/storage/logs/seed-*.log
 
 ---
 
-**Seed Framework v1.0.0** • MIT License • https://github.com/iQ-Global/seed
+## MongoDB
+
+```php
+// Get MongoDB instance
+$mongo = db('mongodb');
+
+// Query documents
+$users = $mongo->query('users', ['status' => 'active']);
+
+// Query one
+$user = $mongo->queryOne('users', ['_id' => $objectId]);
+
+// Insert
+$id = $mongo->insert('users', [
+    'name' => 'John',
+    'email' => 'john@example.com',
+    'created_at' => new \MongoDB\BSON\UTCDateTime()
+]);
+
+// Update
+$mongo->update('users', ['status' => 'inactive'], ['status' => 'active']);
+
+// Update one
+$mongo->updateOne('users', ['_id' => $id], ['name' => 'Jane']);
+
+// Delete
+$mongo->delete('users', ['status' => 'deleted']);
+
+// Count
+$count = $mongo->count('users', ['status' => 'active']);
+
+// Aggregation
+$results = $mongo->aggregate('users', [
+    ['$match' => ['status' => 'active']],
+    ['$group' => ['_id' => '$country', 'count' => ['$sum' => 1]]]
+]);
+
+// Create index
+$mongo->createIndex('users', ['email' => 1], ['unique' => true]);
+
+// Transactions (MongoDB 4.0+)
+$session = $mongo->beginTransaction();
+try {
+    $mongo->insert('users', $data);
+    $mongo->commit($session);
+} catch (\Exception $e) {
+    $mongo->rollback($session);
+}
+```
+
+---
+
+## Enhanced Authentication
+
+```php
+// Password Reset
+send_password_reset('user@example.com');
+
+// In controller (password reset page)
+if (verify_reset_token($_GET['token'])) {
+    reset_password($_GET['token'], $newPassword);
+    flash('success', 'Password reset!');
+}
+
+// Email Verification
+send_verification_email($user);
+
+// In controller (verification page)
+if (verify_email($_GET['token'])) {
+    flash('success', 'Email verified!');
+}
+
+// Check if email verified
+if (!is_email_verified()) {
+    redirect('/verify-email');
+}
+
+// Account Lockout
+// In login controller
+if (is_account_locked($email)) {
+    return view('auth/locked');
+}
+
+// Record login attempt
+record_login_attempt($email, $success = true);
+
+// Unlock account manually
+unlock_account($email);
+
+// Remember Me
+// In login controller
+Auth::login($userId, $remember = true);
+
+// In bootstrap (check remember token)
+if (!is_logged_in()) {
+    check_remember_token();
+}
+
+// Forget remember token
+forget_remember_token();
+```
+
+---
+
+## AI Interface
+
+```php
+// Quick chat
+$response = ai()->chat('What is PHP?');
+echo $response->content();
+
+// With options
+$response = ai()->chat('Explain quantum computing', [
+    'model' => 'gpt-4o',
+    'temperature' => 0.7,
+    'max_tokens' => 500
+]);
+
+// Conversation history
+$response = ai()
+    ->addMessage('user', 'Hello!')
+    ->addMessage('assistant', 'Hi there!')
+    ->addMessage('user', 'What is 2+2?')
+    ->send();
+
+// System prompt
+$response = ai()
+    ->system('You are a helpful coding assistant')
+    ->chat('How do I sort an array in PHP?');
+
+// Specific provider
+$response = ai('openai')->chat('Hello');
+$response = ai('claude')->chat('Hello');
+
+// Model switching
+$response = ai()
+    ->model('gpt-5')
+    ->chat('Complex task');
+
+// Get token usage
+echo $response->tokens()->prompt();
+echo $response->tokens()->completion();
+echo $response->tokens()->total();
+
+// Streaming (callback)
+ai()->chat('Write a long story')->stream(function($chunk) {
+    echo $chunk;
+    flush();
+});
+
+// OpenAI-specific params
+$response = ai('openai')->chat('Generate JSON', [
+    'response_format' => ['type' => 'json_object'],
+    'frequency_penalty' => 0.5
+]);
+
+// Claude-specific params
+$response = ai('claude')->chat('Write code', [
+    'top_k' => 40,
+    'stop_sequences' => ['\n\n']
+]);
+
+// Error handling
+try {
+    $response = ai()->chat('Hello');
+} catch (\Seed\Modules\AI\Exceptions\RateLimitException $e) {
+    // Rate limited
+} catch (\Seed\Modules\AI\Exceptions\AuthenticationException $e) {
+    // Invalid API key
+}
+```
+
+---
+
+## Enhanced Email
+
+```php
+// Basic email (now with PHPMailer)
+email()
+    ->to('user@example.com')
+    ->subject('Welcome!')
+    ->html('<h1>Welcome to our site!</h1>')
+    ->send();
+
+// CC and BCC
+email()
+    ->to('user@example.com')
+    ->cc('manager@example.com')
+    ->bcc('admin@example.com')
+    ->subject('Report')
+    ->send();
+
+// Reply-To
+email()
+    ->to('user@example.com')
+    ->replyTo('support@example.com', 'Support Team')
+    ->send();
+
+// Alternative plain-text body
+email()
+    ->to('user@example.com')
+    ->html('<p>Rich HTML content</p>')
+    ->altBody('Plain text version')
+    ->send();
+
+// Error handling
+$mail = email()->to('user@example.com')->subject('Test');
+if (!$mail->send()) {
+    log_error('Email failed: ' . $mail->getError());
+}
+```
+
+---
+
+## Additional Validation Rules
+
+```php
+// Password confirmation
+validate($data, [
+    'password' => 'required|min:8',
+    'password_confirmation' => 'required|confirmed'  // Checks password_confirmation field
+]);
+
+// Field matching
+validate($data, [
+    'password' => 'required',
+    'password_verify' => 'required|matches:password'
+]);
+
+// Different fields
+validate($data, [
+    'new_password' => 'required|different:old_password'
+]);
+
+// Date validation
+validate($data, [
+    'birthdate' => 'required|date',
+    'start_date' => 'required|date_format:Y-m-d',
+    'end_date' => 'required|after:start_date',
+    'event_date' => 'required|before:2025-12-31'
+]);
+
+// Between range
+validate($data, [
+    'age' => 'required|between:18,65',           // Numeric
+    'username' => 'required|between:3,20'        // String length
+]);
+
+// Whitelist/Blacklist
+validate($data, [
+    'status' => 'required|in:active,pending,inactive',
+    'username' => 'required|not_in:admin,root,system'
+]);
+
+// Regex
+validate($data, [
+    'phone' => 'required|regex:/^\+?[1-9]\d{1,14}$/'
+]);
+
+// Database validation
+validate($data, [
+    'email' => 'required|email|unique:users,email',           // Must be unique
+    'category_id' => 'required|exists:categories,id',         // Must exist
+    'email' => 'required|unique:users,email,' . $userId       // Unique except current user
+]);
+
+// Type validation
+validate($data, [
+    'age' => 'required|integer',
+    'terms' => 'required|boolean'
+]);
+```
+
+---
+
+**Seed Framework v1.5.0** • MIT License • https://github.com/iQ-Global/seed
 
