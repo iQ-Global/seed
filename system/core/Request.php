@@ -117,5 +117,36 @@ class Request {
         $body = file_get_contents('php://input');
         return json_decode($body, true);
     }
+    
+    // Get request host (domain with optional port)
+    public function host() {
+        return $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+    }
+    
+    // Get server name (domain without port)
+    public function serverName() {
+        $host = $this->host();
+        if (strpos($host, ':') !== false) {
+            return explode(':', $host)[0];
+        }
+        return $host;
+    }
+    
+    // Get server port
+    public function port() {
+        return $_SERVER['SERVER_PORT'] ?? 80;
+    }
+    
+    // Check if request is secure (HTTPS)
+    public function isSecure() {
+        return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
+    }
+    
+    // Get full URL
+    public function fullUrl() {
+        $scheme = $this->isSecure() ? 'https' : 'http';
+        return $scheme . '://' . $this->host() . $this->uri();
+    }
 }
 

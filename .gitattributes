@@ -1,0 +1,32 @@
+# Seed Framework - Git Attributes
+# These patterns are excluded from GitHub releases (export-ignore)
+
+# Development files - exclude from releases
+tests/ export-ignore
+dev-docs/ export-ignore
+website/ export-ignore
+
+# Development tools
+.editorconfig export-ignore
+.gitattributes export-ignore
+
+# Normalize line endings
+* text=auto
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.sql text eol=lf
+*.sh text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+

@@ -1,6 +1,8 @@
 <?php
 /**
  * Router - Handle HTTP routing and middleware
+ * 
+ * Supports multi-domain routing with domain groups and subdomain parameters.
  */
 
 namespace Seed\Core;
@@ -12,9 +14,49 @@ class Router {
     private $middleware = [];
     private $groupStack = [];
     
+    // Multi-domain support
+    private $currentDomain = null;      // Current domain during group definition
+    private $defaultRoute = null;       // Global default route
+    private $domainDefaults = [];       // Per-domain default routes
+    private $domainParams = [];         // Extracted subdomain parameters
+    
     public function __construct(Request $request, Response $response) {
         $this->request = $request;
         $this->response = $response;
+    }
+    
+    /**
+     * Create a domain group for domain-specific routes
+     * 
+     * @param string $domain Domain pattern (e.g., 'example.com', '{tenant}.app.example.com')
+     * @param callable $callback Route definitions
+     */
+    public function domain($domain, $callback) {
+        $this->currentDomain = $domain;
+        call_user_func($callback, $this);
+        $this->currentDomain = null;
+    }
+    
+    /**
+     * Set default route (global or per-domain if inside domain group)
+     * 
+     * @param string $action Controller/method (e.g., 'homeController/index')
+     */
+    public function setDefault($action) {
+        if ($this->currentDomain !== null) {
+            $this->domainDefaults[$this->currentDomain] = $action;
+        } else {
+            $this->defaultRoute = $action;
+        }
+    }
+    
+    /**
+     * Get extracted domain parameters (e.g., tenant from {tenant}.example.com)
+     * 
+     * @return array
+     */
+    public function getDomainParams() {
+        return $this->domainParams;
     }
     
     // Register GET route
@@ -51,6 +93,7 @@ class Router {
             'uri' => $uri,
             'action' => $action,
             'middleware' => $this->getGroupMiddleware(),
+            'domain' => $this->currentDomain,  // Track domain constraint
         ];
         
         $this->routes[] = $route;
@@ -113,19 +156,144 @@ class Router {
     public function dispatch() {
         $method = $this->request->method();
         $uri = $this->request->uri();
+        $requestDomain = $this->normalizeDomain($this->request->host());
         
+        // Reset domain params
+        $this->domainParams = [];
+        
+        // First pass: Check domain-specific routes
         foreach ($this->routes as $route) {
-            if ($route['method'] === $method) {
-                $params = $this->matchRoute($route['uri'], $uri);
-                
-                if ($params !== false) {
-                    return $this->handleRoute($route, $params);
-                }
+            if ($route['method'] !== $method) {
+                continue;
+            }
+            
+            // Skip if route has no domain constraint (shared routes checked in second pass)
+            if ($route['domain'] === null) {
+                continue;
+            }
+            
+            // Check if domain matches
+            $domainMatch = $this->matchDomain($requestDomain, $route['domain']);
+            if (!$domainMatch['match']) {
+                continue;
+            }
+            
+            // Check if URI matches
+            $params = $this->matchRoute($route['uri'], $uri);
+            if ($params !== false) {
+                // Merge domain params (e.g., {tenant}) with route params
+                $this->domainParams = $domainMatch['params'];
+                $allParams = array_merge($domainMatch['params'], $params);
+                return $this->handleRoute($route, $allParams);
+            }
+        }
+        
+        // Second pass: Check shared routes (no domain constraint)
+        foreach ($this->routes as $route) {
+            if ($route['method'] !== $method) {
+                continue;
+            }
+            
+            // Only check routes without domain constraint
+            if ($route['domain'] !== null) {
+                continue;
+            }
+            
+            $params = $this->matchRoute($route['uri'], $uri);
+            if ($params !== false) {
+                return $this->handleRoute($route, $params);
+            }
+        }
+        
+        // No explicit route found - try default route
+        if ($uri === '/' || $uri === '') {
+            $defaultAction = $this->getDefaultRoute($requestDomain);
+            if ($defaultAction !== null) {
+                return $this->executeAction($defaultAction, $this->domainParams);
             }
         }
         
         // No route found - 404
         $this->response->notFound();
+    }
+    
+    /**
+     * Normalize domain: strip www, remove port, lowercase
+     */
+    private function normalizeDomain($domain) {
+        // Remove port
+        if (strpos($domain, ':') !== false) {
+            $domain = explode(':', $domain)[0];
+        }
+        
+        // Strip www
+        if (strpos($domain, 'www.') === 0) {
+            $domain = substr($domain, 4);
+        }
+        
+        return strtolower($domain);
+    }
+    
+    /**
+     * Match request domain against pattern
+     * Supports exact match, wildcards (*), and parameters ({tenant})
+     * 
+     * @return array ['match' => bool, 'params' => array]
+     */
+    private function matchDomain($requestDomain, $pattern) {
+        $pattern = $this->normalizeDomain($pattern);
+        
+        // Exact match
+        if ($requestDomain === $pattern) {
+            return ['match' => true, 'params' => []];
+        }
+        
+        // Parameterized match: {tenant}.example.com
+        if (strpos($pattern, '{') !== false) {
+            // Convert {param} to named capture groups
+            $regex = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^.]+)', $pattern);
+            $regex = '/^' . str_replace('.', '\.', $regex) . '$/';
+            
+            if (preg_match($regex, $requestDomain, $matches)) {
+                // Extract only named parameters (string keys)
+                $params = array_filter($matches, function($key) {
+                    return is_string($key);
+                }, ARRAY_FILTER_USE_KEY);
+                return ['match' => true, 'params' => $params];
+            }
+        }
+        
+        // Wildcard match: *.example.com
+        if (strpos($pattern, '*.') === 0) {
+            $baseDomain = substr($pattern, 2); // Remove *.
+            $baseLen = strlen($baseDomain);
+            
+            // Check if request domain ends with base domain
+            if (strlen($requestDomain) > $baseLen + 1 &&
+                substr($requestDomain, -$baseLen) === $baseDomain) {
+                $subdomain = substr($requestDomain, 0, -(strlen($baseDomain) + 1));
+                return ['match' => true, 'params' => ['subdomain' => $subdomain]];
+            }
+        }
+        
+        return ['match' => false, 'params' => []];
+    }
+    
+    /**
+     * Get the appropriate default route for the request domain
+     */
+    private function getDefaultRoute($requestDomain) {
+        // Check domain-specific defaults first
+        foreach ($this->domainDefaults as $pattern => $action) {
+            $match = $this->matchDomain($requestDomain, $pattern);
+            if ($match['match']) {
+                $this->domainParams = $match['params'];
+                return $action;
+            }
+        }
+        
+        // Fall back to global default
+        return $this->defaultRoute;
     }
     
     // Match route pattern against URI

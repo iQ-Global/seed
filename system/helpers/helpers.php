@@ -83,3 +83,37 @@ function response() {
     return new \Seed\Core\Response();
 }
 
+// Get domain parameters (e.g., tenant from {tenant}.example.com)
+function domain_param($key = null, $default = null) {
+    global $seed;
+    
+    if (!isset($seed) || !method_exists($seed, 'router')) {
+        return $key === null ? [] : $default;
+    }
+    
+    $params = $seed->router()->getDomainParams();
+    
+    if ($key === null) {
+        return $params;
+    }
+    
+    return $params[$key] ?? $default;
+}
+
+// Get current domain (normalized)
+function current_domain() {
+    $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+    
+    // Remove port
+    if (strpos($host, ':') !== false) {
+        $host = explode(':', $host)[0];
+    }
+    
+    // Strip www
+    if (strpos($host, 'www.') === 0) {
+        $host = substr($host, 4);
+    }
+    
+    return strtolower($host);
+}
+

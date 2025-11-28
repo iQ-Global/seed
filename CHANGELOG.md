@@ -5,6 +5,48 @@ All notable changes to Seed Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2025-11-28
+
+### Added
+
+#### Multi-Domain Routing
+- **Domain Groups** - Define domain-specific routes
+  - `$router->domain('example.com', function($router) { ... })`
+  - Routes inside domain groups only match for that domain
+  - Shared routes (outside domain groups) work on all domains
+- **Domain Defaults** - Set default route per domain
+  - `$router->setDefault('controller/method')` - Global default
+  - Inside domain group: Sets default for that domain
+- **Subdomain Parameters** - Extract values from subdomains
+  - Pattern: `{tenant}.app.example.com`
+  - Access via: `domain_param('tenant')`
+- **Wildcard Subdomains** - Match any subdomain
+  - Pattern: `*.example.com`
+  - Access via: `domain_param('subdomain')`
+- **Automatic Normalization**
+  - Strips `www.` prefix automatically
+  - Ignores port numbers (`:8000`)
+  - Case-insensitive matching
+
+#### New Helper Functions
+- `domain_param($key, $default)` - Get extracted domain parameters
+- `current_domain()` - Get normalized current domain
+
+#### Request Class Enhancements
+- `host()` - Get request host (with port)
+- `serverName()` - Get server name (without port)
+- `port()` - Get server port
+- `isSecure()` - Check if HTTPS
+- `fullUrl()` - Get complete request URL
+
+### Fixed
+- **Auth.php** - Corrected reversed `update()` parameters in `resetPassword()` and `verifyEmail()` methods (critical bug)
+
+### Notes
+Multi-domain routing is fully backward compatible. Existing single-domain apps work without any changes.
+
+---
+
 ## [1.5.0] - 2025-11-03 🚀 "SaaS Ready"
 
 **Major Feature Release** - Everything you need to build modern SaaS applications.

@@ -136,7 +136,7 @@ class Auth {
         // Update user password
         $db = db();
         $hashedPassword = self::hashPassword($newPassword);
-        $db->update('users', ['email' => $reset->email], ['password' => $hashedPassword]);
+        $db->update('users', ['password' => $hashedPassword], ['email' => $reset->email]);
         
         // Delete used token
         $db->delete('password_resets', ['token' => hash('sha256', $token)]);
@@ -194,9 +194,7 @@ class Auth {
         }
         
         // Mark as verified
-        $db->update('email_verifications', ['id' => $verification->id], [
-            'verified_at' => date('Y-m-d H:i:s')
-        ]);
+        $db->update('email_verifications', ['verified_at' => date('Y-m-d H:i:s')], ['id' => $verification->id]);
         
         // Update user email_verified_at field (if exists)
         $db->query(

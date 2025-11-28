@@ -45,6 +45,60 @@ $router->group(['prefix' => 'api'], function($r) {
 
 ---
 
+## Multi-Domain Routing
+
+```php
+// Domain-specific routes
+$router->domain('example.com', function($router) {
+    $router->setDefault('exampleController/index');  // Default for this domain
+    $router->get('/about', 'exampleController/about');
+});
+
+$router->domain('app.example.com', function($router) {
+    $router->setDefault('dashboardController/index');
+    $router->get('/settings', 'dashboardController/settings');
+});
+
+// Subdomain with parameter extraction
+$router->domain('{tenant}.app.example.com', function($router) {
+    $router->setDefault('tenantController/index');
+    $router->get('/dashboard', 'tenantController/dashboard');
+});
+
+// Wildcard subdomains
+$router->domain('*.example.com', function($router) {
+    $router->get('/', 'subdomainController/index');
+});
+
+// Global default (fallback for all domains)
+$router->setDefault('homeController/index');
+
+// Shared routes (work on all domains)
+$router->get('/api/health', 'apiController/health');
+```
+
+**Access Domain Parameters in Controllers:**
+
+```php
+// For {tenant}.app.example.com
+$tenant = domain_param('tenant');          // e.g., 'acme'
+$all = domain_param();                     // ['tenant' => 'acme']
+
+// For *.example.com wildcard
+$subdomain = domain_param('subdomain');    // e.g., 'blog'
+
+// Get current domain (normalized)
+$domain = current_domain();                // e.g., 'example.com'
+```
+
+**Notes:**
+- `www.` is stripped automatically
+- Ports are ignored (`:8000`)
+- Domain matching is case-insensitive
+- Domain-specific routes take priority over shared routes
+
+---
+
 ## Controllers
 
 ```php
