@@ -117,7 +117,7 @@ class userController extends Controller {
         if (!validate($this->request->post(), [
             'email' => 'required|email'
         ])) {
-            return redirect_back();
+            redirect_back();
         }
         
         // Save
@@ -211,6 +211,83 @@ view('users/profile', ['user' => $user]);
 </form>
 
 <?= show_flash('success') ?>
+```
+
+---
+
+## Layouts
+
+```php
+// Layout (app/views/layouts/main.php)
+<!DOCTYPE html>
+<html>
+<head>
+    <title><?= esc($title ?? 'My Site') ?></title>
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+</head>
+<body>
+    <?php include __DIR__ . '/../partials/nav.php'; ?>
+    <main><?= $content ?></main>
+    <?php include __DIR__ . '/../partials/footer.php'; ?>
+</body>
+</html>
+
+// View using layout (app/views/home.php)
+<?php ob_start(); ?>
+
+<h1>Welcome</h1>
+<p>Page content here</p>
+
+<?php 
+$content = ob_get_clean();
+include __DIR__ . '/layouts/main.php';
+?>
+```
+
+---
+
+## Modules (Business Logic)
+
+```php
+// API Client Module (app/modules/PaymentApi.php)
+<?php
+namespace App\Modules;
+
+class PaymentApi {
+    public function charge($amount, $token) {
+        return http(env('PAYMENT_API_URL'))
+            ->apiKey(env('PAYMENT_API_KEY'))
+            ->post('/charges', [
+                'amount' => $amount,
+                'source' => $token
+            ])
+            ->json();
+    }
+}
+
+// Usage in controller
+$payment = new \App\Modules\PaymentApi();
+$result = $payment->charge(1000, $token);
+```
+
+**Models vs Modules:**
+- `app/models/` → Database entities (Users, Posts)
+- `app/modules/` → Business logic, API clients, utilities
+
+---
+
+## Controller Subdirectories
+
+```php
+// Route to subdirectory controller
+$router->get('/admin/users', 'admin/userController/index');
+
+// File: app/controllers/admin/userController.php
+namespace App\Controllers\Admin;
+
+class userController extends Controller {
+    public function index() { /* ... */ }
+}
 ```
 
 ---

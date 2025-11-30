@@ -31,6 +31,7 @@ Thumbs.db
 tmp/
 dev-docs/
 website/
+ref/ 
 
 # Test files (development only)
 test.php

@@ -2,7 +2,7 @@
 Seed Framework - Complete Guide for AI Context
 ================================================================================
 
-Version: 1.0.2
+Version: 1.5.1
 License: MIT
 Author: iQ
 Website: https://github.com/iQ-Global/seed
@@ -96,17 +96,19 @@ Directory Structure:
 ├── composer.json          # Dependencies
 ├── seed                   # CLI executable
 ├── app/                   # Your application code
-│   ├── controllers/      # Controllers
-│   ├── models/           # Models
-│   ├── views/            # View templates
+│   ├── controllers/      # Controllers (supports subdirectories)
+│   ├── models/           # Database models (data layer)
+│   ├── modules/          # Business logic, API clients, utilities
+│   ├── views/            # View templates (supports layouts)
 │   ├── middleware/       # Custom middleware
-│   ├── helpers/          # Custom helpers
+│   ├── helpers/          # Custom helper functions
+│   ├── config/           # Configuration files
 │   ├── routes.php        # Route definitions
 │   ├── commands.php      # CLI commands
-│   └── storage/          # Logs, sessions, cache
-├── system/               # Framework core
-│   ├── Core/            # Core classes
-│   ├── modules/         # Database, Auth, HTTP, Email
+│   └── storage/          # Logs, sessions, cache, uploads
+├── system/               # Framework core (don't modify)
+│   ├── core/            # Core classes
+│   ├── modules/         # Database, Auth, HTTP, Email, AI
 │   └── helpers/         # Helper functions
 └── assets/              # CSS, JS, images
 
@@ -244,7 +246,7 @@ class userController extends Controller {
         view('users/show', ['user' => $user]);
     }
     
-    // Create user
+    // Create user (POST handler)
     public function store() {
         $rules = [
             'name' => 'required|min:3',
@@ -253,7 +255,7 @@ class userController extends Controller {
         
         if (!validate($this->request->post(), $rules)) {
             flash('error', 'Validation failed');
-            return redirect_back();
+            redirect_back();
         }
         
         $id = db()->insert('users', [
@@ -272,9 +274,47 @@ class userController extends Controller {
     }
 }
 
-Controller Methods:
-- $this->request - Access Request object
-- $this->response - Access Response object
+Controller Properties:
+
+All controllers have access to these via $this->:
+
+$this->request->get('param')     # GET parameters
+$this->request->post('param')    # POST parameters
+$this->request->input('param')   # GET or POST (checks both)
+$this->request->json()           # JSON request body
+$this->request->file('upload')   # Uploaded file
+$this->request->method()         # HTTP method
+$this->request->uri()            # Request URI
+$this->request->header('name')   # Request header
+$this->request->host()           # Request host/domain
+
+$this->response->send($html)     # Send HTML
+$this->response->json($data)     # Send JSON
+$this->response->redirect($url)  # Redirect
+$this->response->notFound()      # 404 response
+
+Controller Subdirectories:
+
+Organize controllers into subdirectories for large applications:
+
+Directory: app/controllers/admin/userController.php
+Namespace: App\Controllers\Admin
+Route: $router->get('/admin/users', 'admin/userController/index');
+
+Directory: app/controllers/api/v1/userController.php  
+Namespace: App\Controllers\Api\V1
+Route: $router->get('/api/v1/users', 'api/v1/userController/index');
+
+Example multi-domain structure:
+
+app/controllers/
+├── homeController.php           # Default/fallback
+├── admin/
+│   ├── dashboardController.php  # Admin area
+│   └── userController.php
+└── api/
+    ├── userController.php       # API endpoints
+    └── postController.php
 
 Models (app/models/):
 
@@ -320,6 +360,102 @@ Using Models in Controllers:
 
 $model = new \App\Models\userModel();
 $users = $model->getActive();
+
+Modules (app/modules/):
+
+Modules are for business logic, external API clients, and utilities that don't 
+fit into models (which are for database entities).
+
+Models vs Modules:
+- Models = Database tables (Users, Posts, Orders)
+- Modules = Business logic, API clients, utilities
+
+Example: External API Client (app/modules/PaymentGateway.php)
+
+<?php
+namespace App\Modules;
+
+class PaymentGateway {
+    private $apiKey;
+    private $baseUrl;
+    
+    public function __construct() {
+        $this->apiKey = env('PAYMENT_API_KEY');
+        $this->baseUrl = env('PAYMENT_API_URL', 'https://api.stripe.com');
+    }
+    
+    public function charge($amount, $currency, $source) {
+        $response = http($this->baseUrl)
+            ->apiKey($this->apiKey)
+            ->post('/v1/charges', [
+                'amount' => $amount,
+                'currency' => $currency,
+                'source' => $source
+            ]);
+        
+        if ($response->failed()) {
+            log_error('Payment failed', ['error' => $response->body()]);
+            return null;
+        }
+        
+        return $response->json();
+    }
+    
+    public function getCustomer($customerId) {
+        return http($this->baseUrl)
+            ->apiKey($this->apiKey)
+            ->get('/v1/customers/' . $customerId)
+            ->json();
+    }
+}
+
+Example: Domain Logic Module (app/modules/OrderProcessor.php)
+
+<?php
+namespace App\Modules;
+
+class OrderProcessor {
+    public function process($orderId) {
+        $order = db()->queryOne("SELECT * FROM orders WHERE id = ?", [$orderId]);
+        
+        // Complex business logic here
+        $this->validateInventory($order);
+        $this->calculateTax($order);
+        $this->applyDiscounts($order);
+        
+        return $order;
+    }
+    
+    private function validateInventory($order) { /* ... */ }
+    private function calculateTax($order) { /* ... */ }
+    private function applyDiscounts($order) { /* ... */ }
+}
+
+Using Modules in Controllers:
+
+<?php
+namespace App\Controllers;
+use Seed\Core\Controller;
+use App\Modules\PaymentGateway;
+
+class checkoutController extends Controller {
+    public function charge() {
+        $gateway = new PaymentGateway();
+        $result = $gateway->charge(
+            $this->request->post('amount'),
+            'usd',
+            $this->request->post('token')
+        );
+        
+        if ($result) {
+            flash('success', 'Payment successful!');
+            redirect('/thank-you');
+        }
+        
+        flash('error', 'Payment failed. Please try again.');
+        redirect_back();
+    }
+}
 
 ================================================================================
 5. Views & Templates
@@ -391,6 +527,88 @@ Form Example:
 
 <?= show_flash('success') ?>
 <?= show_flash('error') ?>
+
+Layouts (Master Templates):
+
+Use PHP's output buffering for layouts with content sections:
+
+Layout file (app/views/layouts/main.php):
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title><?= esc($title ?? 'My Site') ?></title>
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+</head>
+<body class="<?= $bodyClass ?? '' ?>">
+    <header>
+        <?php include __DIR__ . '/../partials/nav.php'; ?>
+    </header>
+    
+    <main>
+        <?= $content ?>
+    </main>
+    
+    <footer>
+        <?php include __DIR__ . '/../partials/footer.php'; ?>
+    </footer>
+    
+    <script src="<?= asset('js/app.js') ?>"></script>
+</body>
+</html>
+
+View using layout (app/views/home.php):
+
+<?php
+// Capture the page content
+ob_start();
+?>
+
+<h1>Welcome to <?= esc($siteName) ?></h1>
+<p>This is the homepage content.</p>
+
+<?php 
+$content = ob_get_clean();
+
+// Include the layout
+include __DIR__ . '/layouts/main.php';
+?>
+
+Alternative: Explicit Layout Variable:
+
+<?php
+// app/views/about.php
+$layout = 'layouts/main';  // Optional: specify which layout
+?>
+
+<?php ob_start(); ?>
+
+<h1>About Us</h1>
+<p><?= esc($description) ?></p>
+
+<?php 
+$content = ob_get_clean();
+include __DIR__ . '/' . ($layout ?? 'layouts/main') . '.php';
+?>
+
+Recommended View Directory Structure:
+
+app/views/
+├── layouts/
+│   ├── main.php           # Default layout
+│   ├── admin.php          # Admin layout
+│   └── blank.php          # No header/footer
+├── partials/
+│   ├── nav.php            # Navigation
+│   ├── footer.php         # Footer
+│   └── sidebar.php        # Sidebar
+├── home.php               # Homepage
+├── users/
+│   ├── index.php          # User list
+│   └── show.php           # User detail
+└── errors/
+    ├── 404.php            # Custom 404
+    └── 500.php            # Custom 500
 
 View Override System:
 
@@ -938,6 +1156,53 @@ if ($response->ok()) {
     ]);
 }
 
+Building API Client Modules:
+
+For cleaner code, wrap external APIs in module classes (app/modules/):
+
+<?php
+// app/modules/WeatherApi.php
+namespace App\Modules;
+
+class WeatherApi {
+    private $client;
+    
+    public function __construct() {
+        $this->client = http(env('WEATHER_API_URL', 'https://api.weather.com'))
+            ->apiKey(env('WEATHER_API_KEY'))
+            ->timeout(env('WEATHER_API_TIMEOUT', 10));
+    }
+    
+    public function getCurrent($city) {
+        $response = $this->client->get('/current', ['city' => $city]);
+        
+        if ($response->failed()) {
+            log_error('Weather API failed', [
+                'city' => $city,
+                'status' => $response->status()
+            ]);
+            return null;
+        }
+        
+        return $response->json();
+    }
+    
+    public function getForecast($city, $days = 5) {
+        $response = $this->client->get('/forecast', [
+            'city' => $city,
+            'days' => $days
+        ]);
+        
+        return $response->ok() ? $response->json() : null;
+    }
+}
+
+// Usage in controller:
+$weather = new \App\Modules\WeatherApi();
+$forecast = $weather->getForecast('London', 7);
+
+This pattern keeps controllers thin and makes API clients reusable and testable.
+
 ================================================================================
 13. Email
 ================================================================================
@@ -1069,7 +1334,7 @@ $path = upload_path('user-avatar.jpg');
 
 Configuration Files:
 
-Create config files in app/config/:
+Create config files in app/config/ for application settings:
 
 app/config/app.php:
 <?php
@@ -1104,6 +1369,45 @@ if (config_has('app.features.api')) {
 
 Get all configuration:
 $allConfig = config();
+
+Site-Wide Configuration Pattern:
+
+For multi-site or complex apps, use config for shared settings:
+
+app/config/sites.php:
+<?php
+return [
+    'main' => [
+        'name' => 'My Company',
+        'tagline' => 'Building great things',
+        'nav' => [
+            ['label' => 'Home', 'url' => '/'],
+            ['label' => 'About', 'url' => '/about'],
+            ['label' => 'Contact', 'url' => '/contact'],
+        ],
+        'footer' => [
+            'copyright' => '© 2025 My Company',
+            'links' => [
+                ['label' => 'Privacy', 'url' => '/privacy'],
+                ['label' => 'Terms', 'url' => '/terms'],
+            ]
+        ]
+    ],
+    'blog' => [
+        'name' => 'My Blog',
+        'postsPerPage' => 10,
+        'nav' => [/* ... */]
+    ]
+];
+
+Usage in controllers:
+$siteConfig = config('sites.main');
+view('home', array_merge($siteConfig, [
+    'title' => 'Welcome',
+    'content' => $pageContent
+]));
+
+This avoids duplicating configuration across controllers
 
 Environment Variables (.env):
 

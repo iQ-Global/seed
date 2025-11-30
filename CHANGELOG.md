@@ -41,6 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Auth.php** - Corrected reversed `update()` parameters in `resetPassword()` and `verifyEmail()` methods (critical bug)
+- **Case-sensitivity** - Renamed directories to match PSR-4 namespace conventions (fixes deployment to case-sensitive Linux filesystems):
+  - `system/core` → `system/Core`
+  - `system/modules` → `system/Modules`
+  - `system/modules/ai` → `system/Modules/AI`
+  - `system/modules/auth` → `system/Modules/Auth`
+  - `system/modules/database` → `system/Modules/Database`
+  - `system/modules/email` → `system/Modules/Email`
+  - `system/modules/http` → `system/Modules/Http`
+  - `system/modules/session` → `system/Modules/Session`
+  - `system/modules/storage` → `system/Modules/Storage`
 
 ### Notes
 Multi-domain routing is fully backward compatible. Existing single-domain apps work without any changes.
