@@ -269,6 +269,221 @@ $cli->register('check:case', function($args) use ($cli) {
     }
 }, 'Check PSR-4 namespace/directory case compliance');
 
+$cli->register('version', function($args) use ($cli) {
+    $composerFile = __DIR__ . '/composer.json';
+    
+    if (!file_exists($composerFile)) {
+        $cli->error("composer.json not found.");
+        return;
+    }
+    
+    $composer = json_decode(file_get_contents($composerFile), true);
+    $version = $composer['version'] ?? 'unknown';
+    
+    $cli->line("");
+    $cli->success("🌱 Seed Framework");
+    $cli->line("");
+    $cli->info("Version: " . $version);
+    $cli->line("PHP: " . PHP_VERSION);
+    $cli->line("OS: " . PHP_OS);
+    $cli->line("");
+    $cli->line("Repository: https://github.com/iQ-Global/seed");
+    $cli->line("");
+}, 'Show framework version');
+
+$cli->register('update', function($args) use ($cli) {
+    $basePath = __DIR__;
+    $composerFile = $basePath . '/composer.json';
+    $force = in_array('--force', $args);
+    $check = in_array('--check', $args);
+    
+    $cli->line("");
+    $cli->info("🌱 Seed Framework Updater");
+    $cli->line("");
+    
+    // Get current version
+    if (!file_exists($composerFile)) {
+        $cli->error("composer.json not found.");
+        return;
+    }
+    
+    $composer = json_decode(file_get_contents($composerFile), true);
+    $currentVersion = $composer['version'] ?? '0.0.0';
+    $cli->line("Current version: " . $currentVersion);
+    
+    // Check latest version from GitHub
+    $cli->line("Checking for updates...");
+    $cli->line("");
+    
+    $context = stream_context_create([
+        'http' => [
+            'header' => "User-Agent: Seed-Updater\r\n",
+            'timeout' => 10
+        ]
+    ]);
+    
+    $apiUrl = 'https://api.github.com/repos/iQ-Global/seed/releases/latest';
+    $response = @file_get_contents($apiUrl, false, $context);
+    
+    if ($response === false) {
+        $cli->error("Could not connect to GitHub. Check your internet connection.");
+        return;
+    }
+    
+    $release = json_decode($response, true);
+    
+    if (!isset($release['tag_name'])) {
+        $cli->error("Could not parse release information.");
+        return;
+    }
+    
+    $latestVersion = ltrim($release['tag_name'], 'v');
+    $cli->line("Latest version:  " . $latestVersion);
+    $cli->line("");
+    
+    // Compare versions
+    if (version_compare($currentVersion, $latestVersion, '>=')) {
+        $cli->success("✓ You're already on the latest version!");
+        return;
+    }
+    
+    $cli->warning("⚡ Update available: " . $currentVersion . " → " . $latestVersion);
+    $cli->line("");
+    
+    if ($check) {
+        $cli->info("Run 'php seed update' to install the update.");
+        return;
+    }
+    
+    // Show release notes
+    if (!empty($release['body'])) {
+        $cli->info("Release notes:");
+        $cli->line(substr($release['body'], 0, 500) . "...");
+        $cli->line("");
+    }
+    
+    // Confirm update
+    if (!$force && !$cli->confirm("Do you want to update now?")) {
+        $cli->info("Update cancelled.");
+        return;
+    }
+    
+    // Download and extract
+    $cli->info("Downloading update...");
+    
+    $zipUrl = $release['zipball_url'] ?? null;
+    if (!$zipUrl) {
+        $cli->error("Could not find download URL.");
+        return;
+    }
+    
+    $tempZip = sys_get_temp_dir() . '/seed-update-' . $latestVersion . '.zip';
+    $tempDir = sys_get_temp_dir() . '/seed-update-' . $latestVersion;
+    
+    // Download zip
+    $zipContent = @file_get_contents($zipUrl, false, $context);
+    if ($zipContent === false) {
+        $cli->error("Failed to download update.");
+        return;
+    }
+    
+    file_put_contents($tempZip, $zipContent);
+    $cli->success("  ✓ Downloaded");
+    
+    // Extract zip
+    $cli->info("Extracting...");
+    
+    $zip = new ZipArchive();
+    if ($zip->open($tempZip) !== true) {
+        $cli->error("Failed to extract update.");
+        @unlink($tempZip);
+        return;
+    }
+    
+    // Create temp directory
+    @mkdir($tempDir, 0755, true);
+    $zip->extractTo($tempDir);
+    $zip->close();
+    
+    // Find the extracted directory (GitHub adds a prefix)
+    $extractedDirs = glob($tempDir . '/iQ-Global-seed-*');
+    if (empty($extractedDirs)) {
+        $cli->error("Could not find extracted files.");
+        @unlink($tempZip);
+        return;
+    }
+    
+    $sourceDir = $extractedDirs[0];
+    $cli->success("  ✓ Extracted");
+    
+    // Backup current system directory
+    $cli->info("Creating backup...");
+    $backupDir = $basePath . '/system.backup-' . date('Y-m-d-His');
+    
+    if (!rename($basePath . '/system', $backupDir)) {
+        $cli->error("Failed to create backup.");
+        @unlink($tempZip);
+        return;
+    }
+    $cli->success("  ✓ Backup created: " . basename($backupDir));
+    
+    // Copy new system directory
+    $cli->info("Installing update...");
+    
+    if (!rename($sourceDir . '/system', $basePath . '/system')) {
+        // Restore backup
+        rename($backupDir, $basePath . '/system');
+        $cli->error("Failed to install update. Backup restored.");
+        @unlink($tempZip);
+        return;
+    }
+    $cli->success("  ✓ system/ updated");
+    
+    // Update seed CLI file
+    if (file_exists($sourceDir . '/seed')) {
+        copy($sourceDir . '/seed', $basePath . '/seed');
+        chmod($basePath . '/seed', 0755);
+        $cli->success("  ✓ seed CLI updated");
+    }
+    
+    // Update docs if they exist
+    if (is_dir($sourceDir . '/docs')) {
+        // Remove old docs and copy new
+        $docsBackup = $basePath . '/docs.backup-' . date('Y-m-d-His');
+        if (is_dir($basePath . '/docs')) {
+            rename($basePath . '/docs', $docsBackup);
+        }
+        rename($sourceDir . '/docs', $basePath . '/docs');
+        $cli->success("  ✓ docs/ updated");
+    }
+    
+    // Update composer.json version (preserve user's require additions)
+    $newComposer = json_decode(file_get_contents($sourceDir . '/composer.json'), true);
+    $composer['version'] = $newComposer['version'];
+    
+    // Merge autoload files (keep user's, add new framework ones)
+    if (isset($newComposer['autoload']['files'])) {
+        $composer['autoload']['files'] = $newComposer['autoload']['files'];
+    }
+    
+    file_put_contents($composerFile, json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+    $cli->success("  ✓ composer.json updated");
+    
+    // Cleanup
+    @unlink($tempZip);
+    
+    // Remove backup after 7 days reminder
+    $cli->line("");
+    $cli->success("✓ Update complete! Now running version " . $latestVersion);
+    $cli->line("");
+    $cli->info("Next steps:");
+    $cli->line("  1. Run 'composer dump-autoload' to refresh autoloader");
+    $cli->line("  2. Test your application");
+    $cli->line("  3. Delete backup when satisfied: " . basename($backupDir));
+    $cli->line("");
+    
+}, 'Update framework to latest version');
+
 // Load user commands (if exists)
 $userCommands = __DIR__ . '/app/commands.php';
 if (file_exists($userCommands)) {

@@ -56,16 +56,51 @@ Simple, clear, and powerful.
 
 ## Installation
 
-Seed is feature-complete and ready to use! Follow these steps to get started:
+Get started in under 5 minutes:
 
 ```bash
-# Future installation (once released)
+# Clone the repository
 git clone https://github.com/iQ-Global/seed.git myproject
 cd myproject
+
+# Install dependencies
 composer install
+
+# Configure environment
 cp .env.example .env
-# Configure .env and start building!
+# Edit .env with your database credentials
+
+# Start development server
+php seed serve
 ```
+
+Visit **http://localhost:8000** — you're running Seed!
+
+📖 **[Full Installation Guide](INSTALL.md)** — Detailed setup, web server config, first route tutorial
+
+---
+
+## Updating Seed
+
+Keep your framework up to date while preserving your code:
+
+```bash
+# Check current version
+php seed version
+
+# Check for updates
+php seed update --check
+
+# Update to latest version
+php seed update
+```
+
+The updater:
+- ✅ Updates `system/` (framework core)
+- ✅ Updates `docs/` (documentation)
+- ✅ Updates `seed` CLI
+- ✅ Creates automatic backups
+- ❌ Never touches your `app/` directory
 
 ---
 
