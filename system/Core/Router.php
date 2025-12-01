@@ -350,14 +350,21 @@ class Router {
     // Execute controller action
     private function executeAction($action, $params) {
         if (is_string($action)) {
-            // Parse controller/method format
-            list($controller, $method) = explode('/', $action);
+            // Parse controller/method format (supports subdirectories)
+            // Examples: 'homeController/index' or 'dip/homeController/index'
+            $parts = explode('/', $action);
+            
+            // Last part is always the method
+            $method = array_pop($parts);
+            
+            // Remaining parts form the controller path
+            $controllerPath = implode('\\', $parts);
             
             // Build controller class name
-            $controllerClass = "App\\Controllers\\{$controller}";
+            $controllerClass = "App\\Controllers\\{$controllerPath}";
             
             if (!class_exists($controllerClass)) {
-                $this->response->error("Controller not found: {$controller}");
+                $this->response->error("Controller not found: {$controllerPath}");
                 return;
             }
             
