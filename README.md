@@ -56,27 +56,91 @@ Simple, clear, and powerful.
 
 ## Installation
 
-Get started in under 5 minutes:
+### Requirements
+
+- PHP 7.4+ (PHP 8.x recommended)
+- Composer
+- MySQL 5.7+, PostgreSQL 10+, or MongoDB 4.4+
+
+### Option 1: One-Liner (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/iQ-Global/seed.git myproject
-cd myproject
+curl -sL https://raw.githubusercontent.com/iQ-Global/seed/master/install.sh | bash -s myproject
+```
 
-# Install dependencies
+This downloads Seed, installs dependencies, and initializes a fresh git repo — ready to push to your own repository.
+
+### Option 2: GitHub Template
+
+1. Click **"Use this template"** → **"Create a new repository"** on GitHub
+2. Clone your new repository
+3. Run `composer install`
+4. Copy `.env.example` to `.env`
+
+### Option 3: Manual Download
+
+```bash
+# Download and extract
+curl -L https://github.com/iQ-Global/seed/archive/master.zip -o seed.zip
+unzip seed.zip && mv seed-master myproject && cd myproject
+
+# Install and configure
 composer install
-
-# Configure environment
 cp .env.example .env
-# Edit .env with your database credentials
 
-# Start development server
+# Initialize your own git repo
+git init && git add . && git commit -m "Initial commit"
+```
+
+### Start Building
+
+```bash
+cd myproject
 php seed serve
 ```
 
-Visit **http://localhost:8000** — you're running Seed!
+Visit **http://localhost:8000** — you're running Seed! 🌱
 
-📖 **[Full Installation Guide](INSTALL.md)** — Detailed setup, web server config, first route tutorial
+### Web Server Configuration
+
+<details>
+<summary><strong>Apache</strong> (click to expand)</summary>
+
+The included `.htaccess` handles everything. Just enable mod_rewrite:
+
+```bash
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+```
+
+</details>
+
+<details>
+<summary><strong>Nginx</strong> (click to expand)</summary>
+
+```nginx
+server {
+    listen 80;
+    server_name myapp.com;
+    root /var/www/myproject;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(env|git) { deny all; }
+    location ~ ^/(app|system|vendor)/ { deny all; }
+}
+```
+
+</details>
 
 ---
 
@@ -173,7 +237,7 @@ session('user_id')        // Get
 
 ## Current Status
 
-**Phase:** 🌍 **v1.6.0 First Public Release!**  
+**Phase:** 🛠️ **v1.6.1 Installation & Update Tooling**  
 **Status:** ✅ Production Ready & Open Source
 
 ### What's Included
@@ -298,6 +362,6 @@ You can:
 
 ---
 
-**Status:** 🌍 v1.6.0 First Public Release  
-**Version:** 1.6.0  
+**Status:** 🛠️ v1.6.1 Installation & Update Tooling  
+**Version:** 1.6.1  
 **Date:** December 1, 2025

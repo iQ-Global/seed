@@ -322,22 +322,46 @@ $cli->register('update', function($args) use ($cli) {
         ]
     ]);
     
+    // Try releases first, fall back to tags
+    $latestVersion = null;
+    $releaseNotes = null;
+    $zipUrl = null;
+    
+    // Try GitHub Releases API first
     $apiUrl = 'https://api.github.com/repos/iQ-Global/seed/releases/latest';
     $response = @file_get_contents($apiUrl, false, $context);
     
-    if ($response === false) {
-        $cli->error("Could not connect to GitHub. Check your internet connection.");
-        return;
+    if ($response !== false) {
+        $release = json_decode($response, true);
+        if (isset($release['tag_name'])) {
+            $latestVersion = ltrim($release['tag_name'], 'v');
+            $releaseNotes = $release['body'] ?? null;
+            $zipUrl = $release['zipball_url'] ?? null;
+        }
     }
     
-    $release = json_decode($response, true);
-    
-    if (!isset($release['tag_name'])) {
-        $cli->error("Could not parse release information.");
-        return;
+    // Fall back to tags API if no releases
+    if ($latestVersion === null) {
+        $tagsUrl = 'https://api.github.com/repos/iQ-Global/seed/tags';
+        $response = @file_get_contents($tagsUrl, false, $context);
+        
+        if ($response === false) {
+            $cli->error("Could not connect to GitHub. Check your internet connection.");
+            return;
+        }
+        
+        $tags = json_decode($response, true);
+        
+        if (empty($tags) || !isset($tags[0]['name'])) {
+            $cli->error("No releases or tags found.");
+            return;
+        }
+        
+        // Get latest tag (first in list)
+        $latestVersion = ltrim($tags[0]['name'], 'v');
+        $zipUrl = $tags[0]['zipball_url'] ?? "https://github.com/iQ-Global/seed/archive/refs/tags/{$tags[0]['name']}.zip";
     }
     
-    $latestVersion = ltrim($release['tag_name'], 'v');
     $cli->line("Latest version:  " . $latestVersion);
     $cli->line("");
     
@@ -356,9 +380,9 @@ $cli->register('update', function($args) use ($cli) {
     }
     
     // Show release notes
-    if (!empty($release['body'])) {
+    if (!empty($releaseNotes)) {
         $cli->info("Release notes:");
-        $cli->line(substr($release['body'], 0, 500) . "...");
+        $cli->line(substr($releaseNotes, 0, 500) . (strlen($releaseNotes) > 500 ? "..." : ""));
         $cli->line("");
     }
     
@@ -371,7 +395,6 @@ $cli->register('update', function($args) use ($cli) {
     // Download and extract
     $cli->info("Downloading update...");
     
-    $zipUrl = $release['zipball_url'] ?? null;
     if (!$zipUrl) {
         $cli->error("Could not find download URL.");
         return;

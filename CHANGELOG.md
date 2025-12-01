@@ -5,6 +5,41 @@ All notable changes to Seed Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2025-12-01 🛠️ Installation & Update Tooling
+
+**Tooling Release** - Easy installation and seamless updates.
+
+### Added
+
+#### One-Liner Installation
+- **`install.sh`** - Automated project setup script
+- `curl -sL https://raw.githubusercontent.com/iQ-Global/seed/master/install.sh | bash -s myproject`
+- Downloads, extracts, installs dependencies, initializes git
+- Cleans up dev files (tests, website, dev-docs)
+- Ready to push to your own repository
+
+#### CLI Commands
+- **`php seed version`** - Display framework version and system info
+- **`php seed update`** - Update framework to latest version
+- **`php seed update --check`** - Check for updates without installing
+- **`php seed update --force`** - Update without confirmation prompt
+
+#### Update Safety Features
+- Automatic backup of `system/` before updating
+- Rollback if installation fails
+- Never touches `app/` directory (user code safe)
+- Updates `system/`, `docs/`, and `seed` CLI
+- Preserves user additions to `composer.json`
+
+### Changed
+- Installation docs consolidated into README.md
+- GitHub repository set as template for easy forking
+
+### Removed
+- `INSTALL.md` - Content merged into README.md
+
+---
+
 ## [1.6.0] - 2025-12-01 🌍 First Public Release
 
 **First Public Release** - Seed Framework is now open source!
