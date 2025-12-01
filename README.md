@@ -138,8 +138,8 @@ session('user_id')        // Get
 
 ## Current Status
 
-**Phase:** 🚀 **v1.5.0 "SaaS Ready" RELEASED!**  
-**Status:** ✅ Production Ready
+**Phase:** 🌍 **v1.6.0 First Public Release!**  
+**Status:** ✅ Production Ready & Open Source
 
 ### What's Included
 - Complete framework core (~7,000+ lines of code)
@@ -175,7 +175,13 @@ session('user_id')        // Get
 - ✅ Enhanced email with PHPMailer
 - ✅ 15 additional validation rules
 
-**v1.6+ - Future Enhancements**
+**v1.6 - First Public Release** ✅ **RELEASED!**
+- ✅ Multi-domain routing with subdomain parameters
+- ✅ PSR-4 case compliance (Linux-ready)
+- ✅ `check:case` CLI command for deployment validation
+- ✅ Open source!
+
+**v1.7+ - Future Enhancements**
 - Multi-tenancy helpers
 - Stripe integration
 - Role/Permission system
@@ -217,7 +223,20 @@ Just like a seed, Seed helps you grow without taking over.
 
 ## Contributing
 
-Seed will be open source once v1.0 is released. Contribution guidelines will be provided at that time.
+Seed is open source! We welcome contributions.
+
+**Before contributing:**
+1. Check existing issues and discussions
+2. For bugs, open an issue with reproduction steps
+3. For features, discuss in an issue first
+4. Follow the existing code style
+5. Run `php seed check:case` before submitting PRs
+
+**Pull requests welcome for:**
+- Bug fixes
+- Documentation improvements
+- Test coverage
+- New features (discuss first)
 
 ---
 
@@ -244,6 +263,6 @@ You can:
 
 ---
 
-**Status:** 🚀 v1.5.0 "SaaS Ready" Released!  
-**Version:** 1.5.0  
-**Date:** November 3, 2025
+**Status:** 🌍 v1.6.0 First Public Release  
+**Version:** 1.6.0  
+**Date:** December 1, 2025

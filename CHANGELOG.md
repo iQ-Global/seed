@@ -5,6 +5,35 @@ All notable changes to Seed Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-12-01 🌍 First Public Release
+
+**First Public Release** - Seed Framework is now open source!
+
+### Added
+
+#### CLI Command: `check:case`
+- **`php seed check:case`** - Scan for PSR-4 namespace/directory case mismatches
+- **`php seed check:case --fix`** - Auto-fix case mismatches
+- Catches issues before deploying to case-sensitive Linux servers
+- Scans both `app/` and `system/` directories
+
+### Fixed
+
+#### PSR-4 Case Compliance (Complete)
+- **All framework directories** now match PSR-4 namespace conventions
+- **System directories**: `system/Core/`, `system/Modules/`, `system/Modules/AI/`, etc.
+- **App directories**: `app/Controllers/`, `app/Models/`, `app/Modules/`
+- Prevents "Class not found" errors when deploying from macOS to Linux
+
+### Notes
+
+**PSR-4 Naming Convention:**
+- Directories containing namespaced PHP classes use **PascalCase** (e.g., `Controllers/`, `Models/`)
+- Directories without namespaces use **lowercase** (e.g., `views/`, `config/`, `helpers/`)
+- Run `php seed check:case` before deploying to Linux to catch any issues
+
+---
+
 ## [1.5.1] - 2025-11-28
 
 ### Added

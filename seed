@@ -124,6 +124,151 @@ $cli->register('clear:logs', function($args) use ($cli) {
     $cli->success("Logs cleared! ({$count} files deleted)");
 }, 'Clear log files');
 
+$cli->register('check:case', function($args) use ($cli) {
+    $fix = in_array('--fix', $args);
+    $basePath = __DIR__;
+    $appPath = $basePath . '/app';
+    $systemPath = $basePath . '/system';
+    
+    $cli->info("Checking PSR-4 case compliance...");
+    $cli->line("");
+    
+    $issues = [];
+    
+    // Scan for PHP files with namespaces
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($appPath, RecursiveDirectoryIterator::SKIP_DOTS)
+    );
+    
+    foreach ($iterator as $file) {
+        if ($file->getExtension() !== 'php') {
+            continue;
+        }
+        
+        $content = file_get_contents($file->getPathname());
+        
+        // Extract namespace
+        if (!preg_match('/^\s*namespace\s+([^;]+);/m', $content, $matches)) {
+            continue; // No namespace, skip
+        }
+        
+        $namespace = trim($matches[1]);
+        
+        // Convert namespace to expected path
+        // App\Controllers\Dip -> app/Controllers/Dip
+        $expectedPath = str_replace('\\', '/', $namespace);
+        $expectedPath = preg_replace('/^App/', 'app', $expectedPath);
+        
+        // Get actual path relative to base
+        $actualPath = str_replace($basePath . '/', '', $file->getPath());
+        
+        // Compare (case-sensitive)
+        if ($expectedPath !== $actualPath) {
+            $issues[] = [
+                'file' => str_replace($basePath . '/', '', $file->getPathname()),
+                'namespace' => $namespace,
+                'expected' => $expectedPath,
+                'actual' => $actualPath
+            ];
+        }
+    }
+    
+    // Also scan system directory
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($systemPath, RecursiveDirectoryIterator::SKIP_DOTS)
+    );
+    
+    foreach ($iterator as $file) {
+        if ($file->getExtension() !== 'php') {
+            continue;
+        }
+        
+        $content = file_get_contents($file->getPathname());
+        
+        if (!preg_match('/^\s*namespace\s+([^;]+);/m', $content, $matches)) {
+            continue;
+        }
+        
+        $namespace = trim($matches[1]);
+        $expectedPath = str_replace('\\', '/', $namespace);
+        $expectedPath = preg_replace('/^Seed/', 'system', $expectedPath);
+        $actualPath = str_replace($basePath . '/', '', $file->getPath());
+        
+        if ($expectedPath !== $actualPath) {
+            $issues[] = [
+                'file' => str_replace($basePath . '/', '', $file->getPathname()),
+                'namespace' => $namespace,
+                'expected' => $expectedPath,
+                'actual' => $actualPath
+            ];
+        }
+    }
+    
+    if (empty($issues)) {
+        $cli->success("✓ All directories match their namespace case!");
+        $cli->line("");
+        $cli->info("Your project is ready for deployment to case-sensitive filesystems (Linux).");
+        return;
+    }
+    
+    $cli->error("✗ Found " . count($issues) . " case mismatch(es):");
+    $cli->line("");
+    
+    foreach ($issues as $issue) {
+        $cli->warning("File: " . $issue['file']);
+        $cli->line("  Namespace: " . $issue['namespace']);
+        $cli->line("  Expected:  " . $issue['expected'] . "/");
+        $cli->line("  Actual:    " . $issue['actual'] . "/");
+        $cli->line("");
+    }
+    
+    if ($fix) {
+        $cli->info("Attempting to fix...");
+        $cli->line("");
+        
+        // Group by directory that needs renaming
+        $renames = [];
+        foreach ($issues as $issue) {
+            $expectedParts = explode('/', $issue['expected']);
+            $actualParts = explode('/', $issue['actual']);
+            
+            // Find first mismatched segment
+            for ($i = 0; $i < count($expectedParts) && $i < count($actualParts); $i++) {
+                if ($expectedParts[$i] !== $actualParts[$i]) {
+                    $parentPath = implode('/', array_slice($actualParts, 0, $i));
+                    $from = $basePath . '/' . $parentPath . '/' . $actualParts[$i];
+                    $to = $basePath . '/' . $parentPath . '/' . $expectedParts[$i];
+                    $renames[$from] = $to;
+                    break;
+                }
+            }
+        }
+        
+        foreach ($renames as $from => $to) {
+            if (!is_dir($from)) {
+                continue;
+            }
+            
+            $cli->line("Renaming: " . basename($from) . " → " . basename($to));
+            
+            // Two-step rename for case-insensitive filesystems
+            $temp = $from . '_temp_case_fix';
+            if (rename($from, $temp) && rename($temp, $to)) {
+                $cli->success("  ✓ Done");
+            } else {
+                $cli->error("  ✗ Failed");
+            }
+        }
+        
+        $cli->line("");
+        $cli->info("Run 'composer dump-autoload' to update the autoloader.");
+    } else {
+        $cli->line("Run 'php seed check:case --fix' to auto-fix these issues.");
+        $cli->line("");
+        $cli->warning("⚠ These mismatches will cause errors on Linux servers!");
+    }
+}, 'Check PSR-4 namespace/directory case compliance');
+
 // Load user commands (if exists)
 $userCommands = __DIR__ . '/app/commands.php';
 if (file_exists($userCommands)) {

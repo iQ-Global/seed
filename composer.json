@@ -1,7 +1,7 @@
 {
     "name": "iq/seed",
     "description": "A minimal PHP framework that helps you grow without taking over",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "keywords": ["framework", "minimal", "php", "mvc", "seed"],
     "license": "MIT",
     "type": "project",
