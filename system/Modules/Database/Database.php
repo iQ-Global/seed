@@ -103,7 +103,13 @@ class Database {
             $stmt = $conn->prepare($sql);
             $stmt->execute($values);
             
-            return $conn->lastInsertId();
+            // lastInsertId() fails on PostgreSQL tables without SERIAL columns
+            // (e.g., VARCHAR/UUID primary keys). Return null in those cases.
+            try {
+                return $conn->lastInsertId();
+            } catch (\Exception $e) {
+                return null;
+            }
         } catch (PDOException $e) {
             log_error('Insert failed', ['table' => $table, 'error' => $e->getMessage()]);
             throw new \Exception('Insert failed: ' . $e->getMessage());

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **DatabaseSessionDriver**: Added `#[\ReturnTypeWillChange]` attribute to all SessionHandlerInterface methods for PHP 7/8 compatibility. PHP 7.x ignores the attribute, PHP 8.0+ uses it to suppress deprecation warnings.
+- **Database::insert()**: Fixed PostgreSQL error on tables without SERIAL primary keys (VARCHAR, UUID, etc.). `lastInsertId()` now gracefully returns `null` instead of throwing an error.
 
 ---
 
