@@ -5,6 +5,13 @@ All notable changes to Seed Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2025-12-13 🐛 Bug Fixes
+
+### Fixed
+- **DatabaseSessionDriver**: Added `#[\ReturnTypeWillChange]` attribute to all SessionHandlerInterface methods for PHP 7/8 compatibility. PHP 7.x ignores the attribute, PHP 8.0+ uses it to suppress deprecation warnings.
+
+---
+
 ## [1.6.2] - 2025-12-01 🐛 Bug Fixes
 
 ### Fixed

@@ -2,8 +2,9 @@
 /**
  * DatabaseSessionDriver - Database-backed session storage
  * 
- * Note: PHP 8 deprecation warnings are expected due to SessionHandlerInterface type hints.
- * We can't add type hints as we support PHP 7.0+. Warnings are harmless.
+ * Uses #[\ReturnTypeWillChange] attribute for PHP 7/8 compatibility.
+ * PHP 7.x ignores attributes (treated as comments), PHP 8.0+ recognizes
+ * them and suppresses the SessionHandlerInterface deprecation warnings.
  */
 
 namespace Seed\Modules\Session;
@@ -18,18 +19,18 @@ class DatabaseSessionDriver implements \SessionHandlerInterface {
         $this->lifetime = env('SESSION_LIFETIME', 120) * 60;
     }
     
-    // Open session
+    #[\ReturnTypeWillChange]
     public function open($path, $name) {
         $this->db = db();
         return true;
     }
     
-    // Close session
+    #[\ReturnTypeWillChange]
     public function close() {
         return true;
     }
     
-    // Read session data
+    #[\ReturnTypeWillChange]
     public function read($id) {
         $result = $this->db->queryOne(
             "SELECT payload FROM {$this->table} WHERE id = ? AND last_activity > ?",
@@ -39,7 +40,7 @@ class DatabaseSessionDriver implements \SessionHandlerInterface {
         return $result ? $result->payload : '';
     }
     
-    // Write session data
+    #[\ReturnTypeWillChange]
     public function write($id, $data) {
         $payload = [
             'id' => $id,
@@ -67,13 +68,13 @@ class DatabaseSessionDriver implements \SessionHandlerInterface {
         return true;
     }
     
-    // Destroy session
+    #[\ReturnTypeWillChange]
     public function destroy($id) {
         $this->db->delete($this->table, ['id' => $id]);
         return true;
     }
     
-    // Garbage collection
+    #[\ReturnTypeWillChange]
     public function gc($max_lifetime) {
         $expired = time() - $max_lifetime;
         $this->db->raw(
@@ -83,4 +84,3 @@ class DatabaseSessionDriver implements \SessionHandlerInterface {
         return true;
     }
 }
-
