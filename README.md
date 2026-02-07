@@ -65,7 +65,11 @@ Simple, clear, and powerful.
 ### Option 1: One-Liner (Recommended)
 
 ```bash
+# Full install (includes docs/, LICENSE, README.md)
 curl -sL https://raw.githubusercontent.com/iQ-Global/seed/master/install.sh | bash -s myproject
+
+# Clean install (minimal — just framework + SEED.md with links to docs on GitHub)
+curl -sL https://raw.githubusercontent.com/iQ-Global/seed/master/install.sh | bash -s myproject --clean
 ```
 
 This downloads Seed, installs dependencies, and initializes a fresh git repo — ready to push to your own repository.

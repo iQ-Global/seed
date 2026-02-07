@@ -5,11 +5,28 @@ All notable changes to Seed Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.5] - 2026-02-07 🛠️ Clean Install
+
+### Added
+- **Clean install option**: `install.sh --clean` removes docs, LICENSE, README and CHANGELOG, leaving only a `SEED.md` with quick reference and links to online documentation.
+- **`docs/SEED.md`**: Lightweight reference file for clean installs — includes project structure, PSR-4 warnings, CLI commands, and links to full docs on GitHub.
+
+### Changed
+- **`install.sh`**: Simplified by sourcing `SEED.md` from `docs/` instead of embedding it inline.
+
+---
+
+## [1.6.4] - 2026-01-14 🐛 Bug Fixes
+
+### Fixed
+- **Database::insert()**: Fixed PostgreSQL error on tables without SERIAL primary keys (VARCHAR, UUID, etc.). `lastInsertId()` now gracefully returns `null` instead of throwing an error.
+
+---
+
 ## [1.6.3] - 2025-12-13 🐛 Bug Fixes
 
 ### Fixed
 - **DatabaseSessionDriver**: Added `#[\ReturnTypeWillChange]` attribute to all SessionHandlerInterface methods for PHP 7/8 compatibility. PHP 7.x ignores the attribute, PHP 8.0+ uses it to suppress deprecation warnings.
-- **Database::insert()**: Fixed PostgreSQL error on tables without SERIAL primary keys (VARCHAR, UUID, etc.). `lastInsertId()` now gracefully returns `null` instead of throwing an error.
 
 ---
 

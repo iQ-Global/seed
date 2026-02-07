@@ -5,8 +5,10 @@
 #
 # Usage:
 #   curl -sL https://raw.githubusercontent.com/iQ-Global/seed/master/install.sh | bash -s myproject
+#   curl -sL https://raw.githubusercontent.com/iQ-Global/seed/master/install.sh | bash -s myproject --clean
 #   OR
 #   bash install.sh myproject
+#   bash install.sh myproject --clean
 #
 
 set -e
@@ -18,8 +20,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Project name from argument or prompt
-PROJECT_NAME="${1:-}"
+# Parse arguments
+PROJECT_NAME=""
+CLEAN_INSTALL=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --clean)
+            CLEAN_INSTALL=true
+            ;;
+        *)
+            if [ -z "$PROJECT_NAME" ]; then
+                PROJECT_NAME="$arg"
+            fi
+            ;;
+    esac
+done
 
 echo ""
 echo -e "${GREEN}🌱 Seed Framework Installer${NC}"
@@ -49,7 +65,11 @@ if [ -d "$PROJECT_NAME" ]; then
     exit 1
 fi
 
-echo -e "${BLUE}Creating project: ${PROJECT_NAME}${NC}"
+if [ "$CLEAN_INSTALL" = true ]; then
+    echo -e "${BLUE}Creating project: ${PROJECT_NAME} (clean install)${NC}"
+else
+    echo -e "${BLUE}Creating project: ${PROJECT_NAME}${NC}"
+fi
 echo ""
 
 # Create temp directory
@@ -89,6 +109,16 @@ rm -rf dev-docs 2>/dev/null || true
 rm -rf tests 2>/dev/null || true
 rm -rf ref 2>/dev/null || true
 
+# Clean install: keep only SEED.md from docs
+if [ "$CLEAN_INSTALL" = true ]; then
+    mv docs/SEED.md SEED.md 2>/dev/null || true
+    rm -rf docs 2>/dev/null || true
+    rm -f LICENSE 2>/dev/null || true
+    rm -f README.md 2>/dev/null || true
+    rm -f CHANGELOG.md 2>/dev/null || true
+    echo -e "${GREEN}  ✓ Clean install (SEED.md created)${NC}"
+fi
+
 # Create .env from example
 if [ -f ".env.example" ]; then
     cp .env.example .env
@@ -127,4 +157,3 @@ echo -e "Edit ${YELLOW}.env${NC} to configure your database."
 echo ""
 echo -e "Documentation: ${BLUE}https://github.com/iQ-Global/seed${NC}"
 echo ""
-
